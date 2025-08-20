@@ -1,0 +1,26 @@
+version: "3"
+services:
+  ndh-server:
+    build: .
+    container_name: ndh-server
+    restart: on-failure
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://ndh-postgres:5432/hapi"
+      SPRING_DATASOURCE_USERNAME: "admin"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      SPRING_DATASOURCE_DRIVERCLASSNAME: "org.postgresql.Driver"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect"
+    ports:
+      - "8080:8080"
+  ndh-postgres:
+    image: postgres:15-alpine
+    container_name: ndh-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: "hapi"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+    volumes:
+      - ndh-postgres:/var/lib/postgresql/data
+volumes:
+  ndh-postgres:

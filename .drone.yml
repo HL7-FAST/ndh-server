@@ -1,0 +1,97 @@
+---
+name: latest-amd64
+kind: pipeline
+type: docker
+platform:
+  arch: amd64
+  os: linux
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      repo: hlseven/fast-ndh-server
+      # tags: [latest-linux-amd64]
+      tags:
+        - ${DRONE_COMMIT_BRANCH}-linux-amd64
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+# trigger:
+#   branch:
+#     - master
+---
+name: latest-arm64
+kind: pipeline
+type: docker
+platform:
+  arch: arm64
+  os: linux
+steps:
+  - name: publish
+    image: plugins/docker
+    settings:
+      repo: hlseven/fast-ndh-server
+      # tags: [latest-linux-arm64]
+      tags:
+        - ${DRONE_COMMIT_BRANCH}-linux-arm64
+      # auto_tag: true
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+# trigger:
+#   branch:
+#     - master
+---
+name: manifest
+kind: pipeline
+type: docker
+depends_on:
+  - latest-amd64
+  - latest-arm64
+steps:
+  - name: publish-manifest
+    image: plugins/manifest
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      target: hlseven/fast-ndh-server:latest
+      template: hlseven/fast-ndh-server:latest-OS-ARCH
+      platforms:
+        - linux/amd64
+        - linux/arm64
+      exclude: [master]
+trigger:
+  branch:
+    include:
+      - master
+  status:
+    - success
+# ---
+# name: manifest
+# kind: pipeline
+# type: docker
+# depends_on:
+#   - latest-amd64
+#   - latest-arm64
+# steps:
+#   - name: publish-manifest
+#     image: plugins/manifest
+#     settings:
+#       username:
+#         from_secret: docker_username
+#       password:
+#         from_secret: docker_password
+#       template: hlseven/fast-ndh-server:BRANCH-OS-ARCH
+#       platforms:
+#         - linux/amd64
+#         - linux/arm64
+# trigger:
+#   branch:
+#     exclude:
+#       - master
+#   status:
+#     - success

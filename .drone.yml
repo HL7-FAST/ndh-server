@@ -59,7 +59,7 @@ steps:
       password:
         from_secret: docker_password
       target: hlseven/fast-ndh-server:latest
-      template: hlseven/fast-ndh-server:latest-OS-ARCH
+      template: hlseven/fast-ndh-server:master-OS-ARCH
       platforms:
         - linux/amd64
         - linux/arm64

@@ -1,5 +1,7 @@
 # FAST National Directory Reference Implementation
 
+[![Build Status](https://ci.hl7.org/api/badges/HL7-FAST/ndh-server/status.svg)](https://ci.hl7.org/HL7-FAST/ndh-server)
+
 This is a FHIR server reference implementation of the [FAST National Directory of Healthcare Providers & Services (NDH) IG](https://build.fhir.org/ig/HL7/fhir-us-ndh/) for the current STU2 sequence.  It is built on the [HAPI FHIR JPA Starter Project](https://github.com/hapifhir/hapi-fhir-jpaserver-starter) project and more detailed configuration information can be found in that repository.
 
 ## Prerequisites

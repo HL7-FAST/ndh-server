@@ -199,8 +199,9 @@ hapi:
       - Subscription
       - VerificationResult
       # Currently used internally
-      - Task
+      - Binary
       - Patient
+      - Task
 
     ##################################################
     # Allowed Bundle Types for persistence (defaults are: COLLECTION,DOCUMENT,MESSAGE)

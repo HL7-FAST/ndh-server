@@ -12,6 +12,7 @@ import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,7 @@ import ca.uhn.fhir.interceptor.api.Hook;
 import ca.uhn.fhir.interceptor.api.Pointcut;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.patch.FhirPatch;
+import ca.uhn.fhir.jpa.starter.annotations.OnR4Condition;
 import ca.uhn.fhir.jpa.topic.SubscriptionTopicConfig;
 import ca.uhn.fhir.jpa.topic.SubscriptionTopicDispatcher;
 import ca.uhn.fhir.rest.api.RestOperationTypeEnum;
@@ -26,6 +28,7 @@ import ca.uhn.fhir.rest.api.server.RequestDetails;
 
 @Component
 @Import(SubscriptionTopicConfig.class)
+@Conditional(OnR4Condition.class)
 public class SubscriptionInterceptor extends BaseInterceptor {
   
 

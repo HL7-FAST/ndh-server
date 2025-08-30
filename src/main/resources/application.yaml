@@ -43,8 +43,8 @@ spring:
     baselineOnMigrate: true
     fail-on-missing-locations: false
   datasource:
-    #url: 'jdbc:h2:file:./target/database/h2'
-    url: jdbc:h2:mem:test_mem
+    url: 'jdbc:h2:file:./target/database/h2'
+    # url: jdbc:h2:mem:test_mem
     username: sa
     password: null
     driverClassName: org.h2.Driver
@@ -165,8 +165,15 @@ hapi:
     ### Flag is true by default. This flag filters resources during package installation, allowing only those resources with a valid status (e.g. active) to be installed.
     #    validate_resource_status_for_package_upload: false 
     #    install_transitive_ig_dependencies: true
-    #implementationguides:
+    implementationguides:
     ###    example from registry (packages.fhir.org)
+      ndh:
+        name: hl7.fhir.us.ndh
+        version: 2.0.0
+        packageUrl: https://build.fhir.org/ig/HL7/fhir-us-ndh/package.tgz
+      us-core-610:
+        name: hl7.fhir.us.core
+        version: 6.1.0
     #  swiss:
     #    name: swiss.mednet.fhir
     #    version: 0.8.0
@@ -177,9 +184,24 @@ hapi:
     #        packageUrl: https://build.fhir.org/ig/HL7/fhir-ips/package.tgz
     #        name: hl7.fhir.uv.ips
     #        version: 1.0.0
-    #    supported_resource_types:
-    #      - Patient
-    #      - Observation
+    supported_resource_types:
+      # NDH resource types
+      - Bundle
+      - Endpoint
+      - HealthcareService
+      - InsurancePlan
+      - Location
+      - Organization
+      - OrganizationAffiliation
+      - Parameters
+      - Practitioner
+      - PractitionerRole
+      - Subscription
+      - VerificationResult
+      # Currently used internally
+      - Task
+      - Patient
+
     ##################################################
     # Allowed Bundle Types for persistence (defaults are: COLLECTION,DOCUMENT,MESSAGE)
     ##################################################

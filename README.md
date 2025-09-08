@@ -29,3 +29,7 @@ mvn -Pjetty spring-boot:run
 ```bash
 docker compose up -d
 ```
+
+## Postman Collection
+
+A basic Postman collection that demonstrates requesting and querying for a bulk export, creating a new Practitioner, subscribing to Practitioner changes, and updating it to trigger the subscription is available in the [`ndh.postman_collection.json`](ndh.postman_collection.json) file.

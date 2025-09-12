@@ -1,0 +1,47 @@
+{
+  "id": "bbaaa7b9-bcea-4c1e-b874-935c81b5cb66",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "address": {
+    "city": "Yakima",
+    "country": "US",
+    "line": [
+      "402 S 4TH AVE"
+    ],
+    "postalCode": "98902-3546",
+    "state": "WA"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "bbaaa7b9-bcea-4c1e-b874-935c81b5cb66"
+    }
+  ],
+  "name": "Stonehouse, Diana - 1",
+  "status": "active",
+  "resourceType": "Location"
+}

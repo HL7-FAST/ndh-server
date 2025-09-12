@@ -1,0 +1,64 @@
+{
+  "id": "c4058779-01c4-4c81-aed8-40e90ef19e4a",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    },
+    {
+      "extension": [
+        {
+          "url": "acceptingPatients",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "code": "nopt",
+                "display": "Not Accepting",
+                "system": "http://terminology.hl7.org/CodeSystem/accepting-patients"
+              }
+            ]
+          }
+        }
+      ],
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-newpatients"
+    }
+  ],
+  "address": {
+    "city": "Helena",
+    "country": "US",
+    "line": [
+      "1601 N BENTON AVE"
+    ],
+    "postalCode": "59625-0001",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "c4058779-01c4-4c81-aed8-40e90ef19e4a"
+    }
+  ],
+  "name": "Ward, Kristina - 1",
+  "status": "active",
+  "resourceType": "Location"
+}

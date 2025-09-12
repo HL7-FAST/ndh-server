@@ -1,0 +1,115 @@
+{
+  "id": "8dd829f0-78a4-4254-9cfa-c1e34a97df74",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Organization"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "active": true,
+  "address": [
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "2525 E BROADWAY ST",
+        "SUITE 203"
+      ],
+      "postalCode": "59601-8049",
+      "state": "MT"
+    },
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "PO BOX 6369"
+      ],
+      "postalCode": "59604-6369",
+      "state": "MT"
+    }
+  ],
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://hl7.org/fhir/sid/us-npi",
+      "use": "official",
+      "value": "1518186741"
+    }
+  ],
+  "name": "St. Peter'S Hospital",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "4064574250"
+    },
+    {
+      "system": "fax",
+      "value": "4064574520"
+    },
+    {
+      "system": "phone",
+      "value": "4064472828"
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "prvgrp",
+          "display": "Provider Group",
+          "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhOrgTypeCS"
+        }
+      ]
+    }
+  ],
+  "resourceType": "Organization"
+}

@@ -1,0 +1,47 @@
+{
+  "id": "fbf68ca6-07b9-4458-9824-4140e11e1980",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "address": {
+    "city": "Helena",
+    "country": "US",
+    "line": [
+      "663 N WARREN ST"
+    ],
+    "postalCode": "59601-3649",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "fbf68ca6-07b9-4458-9824-4140e11e1980"
+    }
+  ],
+  "name": "Johnson, Kimberly - 2",
+  "status": "active",
+  "resourceType": "Location"
+}

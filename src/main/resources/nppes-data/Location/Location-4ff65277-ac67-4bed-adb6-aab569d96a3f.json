@@ -1,0 +1,65 @@
+{
+  "id": "4ff65277-ac67-4bed-adb6-aab569d96a3f",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    },
+    {
+      "extension": [
+        {
+          "url": "acceptingPatients",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "code": "existptonly",
+                "display": "Accepting existing patients only",
+                "system": "http://terminology.hl7.org/CodeSystem/accepting-patients"
+              }
+            ]
+          }
+        }
+      ],
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-newpatients"
+    }
+  ],
+  "address": {
+    "city": "Helena",
+    "country": "US",
+    "line": [
+      "432 N LAST CHANCE GULCH",
+      "SUITE G"
+    ],
+    "postalCode": "59601-5014",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "4ff65277-ac67-4bed-adb6-aab569d96a3f"
+    }
+  ],
+  "name": "Blue Diamond Psychiatric Services Pc - 1",
+  "status": "active",
+  "resourceType": "Location"
+}

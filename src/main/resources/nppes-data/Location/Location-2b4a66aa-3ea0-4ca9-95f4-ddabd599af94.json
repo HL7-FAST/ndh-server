@@ -1,0 +1,48 @@
+{
+  "id": "2b4a66aa-3ea0-4ca9-95f4-ddabd599af94",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "address": {
+    "city": "Helena",
+    "country": "US",
+    "line": [
+      "PO BOX 6369",
+      "ST PETERS HOSPITAL PHYSICIAN BILLING"
+    ],
+    "postalCode": "59604",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "2b4a66aa-3ea0-4ca9-95f4-ddabd599af94"
+    }
+  ],
+  "name": "St Peters Hospital - 3",
+  "status": "active",
+  "resourceType": "Location"
+}

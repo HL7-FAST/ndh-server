@@ -1,0 +1,110 @@
+{
+  "id": "d6123fde-2395-432f-978a-b7fe85161330",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Organization"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "active": true,
+  "address": [
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 43.6005
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -116.2308
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Boise",
+      "country": "US",
+      "line": [
+        "250 E PARKCENTER BLVD"
+      ],
+      "postalCode": "83706-3940",
+      "state": "ID"
+    },
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "611 N MONTANA AVE"
+      ],
+      "postalCode": "59601-3827",
+      "state": "MT"
+    }
+  ],
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://hl7.org/fhir/sid/us-npi",
+      "use": "official",
+      "value": "1831128859"
+    }
+  ],
+  "name": "Safeway Inc",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "4064434508"
+    },
+    {
+      "system": "fax",
+      "value": "4064433517"
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "prvgrp",
+          "display": "Provider Group",
+          "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhOrgTypeCS"
+        }
+      ]
+    }
+  ],
+  "resourceType": "Organization"
+}

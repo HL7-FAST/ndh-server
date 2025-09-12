@@ -1,0 +1,114 @@
+{
+  "id": "e49cfc8d-ce98-4b1a-9e10-f01715edb41f",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Organization"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "active": true,
+  "address": [
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "909 IDLEWILDE CT"
+      ],
+      "postalCode": "59601-0430",
+      "state": "MT"
+    },
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "909 IDLEWILDE CT"
+      ],
+      "postalCode": "59601-0430",
+      "state": "MT"
+    }
+  ],
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://hl7.org/fhir/sid/us-npi",
+      "use": "official",
+      "value": "1003253204"
+    }
+  ],
+  "name": "Erin Holm Physical Therapy LLC",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "4064617073"
+    },
+    {
+      "system": "fax",
+      "value": "8777958113"
+    },
+    {
+      "system": "phone",
+      "value": "4064617073"
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "prvgrp",
+          "display": "Provider Group",
+          "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhOrgTypeCS"
+        }
+      ]
+    }
+  ],
+  "resourceType": "Organization"
+}

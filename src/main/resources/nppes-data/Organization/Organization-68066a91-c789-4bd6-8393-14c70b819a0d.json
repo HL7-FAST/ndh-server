@@ -1,0 +1,114 @@
+{
+  "id": "68066a91-c789-4bd6-8393-14c70b819a0d",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Organization"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "active": true,
+  "address": [
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "1 MEDICAL PARK DR"
+      ],
+      "postalCode": "59601-8022",
+      "state": "MT"
+    },
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "1 MEDICAL PARK DR"
+      ],
+      "postalCode": "59601-8022",
+      "state": "MT"
+    }
+  ],
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://hl7.org/fhir/sid/us-npi",
+      "use": "official",
+      "value": "1073557393"
+    }
+  ],
+  "name": "St. Peter'S Health",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "4064426356"
+    },
+    {
+      "system": "fax",
+      "value": "4064426352"
+    },
+    {
+      "system": "phone",
+      "value": "4064426356"
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "prvgrp",
+          "display": "Provider Group",
+          "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhOrgTypeCS"
+        }
+      ]
+    }
+  ],
+  "resourceType": "Organization"
+}

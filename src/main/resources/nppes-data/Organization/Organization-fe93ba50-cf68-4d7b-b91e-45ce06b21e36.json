@@ -1,0 +1,116 @@
+{
+  "id": "fe93ba50-cf68-4d7b-b91e-45ce06b21e36",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Organization"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "active": true,
+  "address": [
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "301 SADDLE DR",
+        "SUITE F"
+      ],
+      "postalCode": "59601-8098",
+      "state": "MT"
+    },
+    {
+      "extension": [
+        {
+          "extension": [
+            {
+              "url": "latitude",
+              "valueDecimal": 46.5965
+            },
+            {
+              "url": "longitude",
+              "valueDecimal": -112.0202
+            }
+          ],
+          "url": "http://hl7.org/fhir/StructureDefinition/geolocation"
+        }
+      ],
+      "city": "Helena",
+      "country": "US",
+      "line": [
+        "301 SADDLE DR",
+        "SUITE F"
+      ],
+      "postalCode": "59601-8098",
+      "state": "MT"
+    }
+  ],
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://hl7.org/fhir/sid/us-npi",
+      "use": "official",
+      "value": "1063822591"
+    }
+  ],
+  "name": "Matthew D McLaren M.D. PLLC",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "4064220503"
+    },
+    {
+      "system": "fax",
+      "value": "4062040206"
+    },
+    {
+      "system": "phone",
+      "value": "4064220503"
+    }
+  ],
+  "type": [
+    {
+      "coding": [
+        {
+          "code": "prvgrp",
+          "display": "Provider Group",
+          "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhOrgTypeCS"
+        }
+      ]
+    }
+  ],
+  "resourceType": "Organization"
+}

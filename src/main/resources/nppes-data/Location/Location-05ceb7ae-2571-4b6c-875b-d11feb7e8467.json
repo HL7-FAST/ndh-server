@@ -1,0 +1,64 @@
+{
+  "id": "05ceb7ae-2571-4b6c-875b-d11feb7e8467",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    },
+    {
+      "extension": [
+        {
+          "url": "acceptingPatients",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "code": "nopt",
+                "display": "Not Accepting",
+                "system": "http://terminology.hl7.org/CodeSystem/accepting-patients"
+              }
+            ]
+          }
+        }
+      ],
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-newpatients"
+    }
+  ],
+  "address": {
+    "city": "Billings",
+    "country": "US",
+    "line": [
+      "3737 GRAND AVE STE 8"
+    ],
+    "postalCode": "59102-6258",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "05ceb7ae-2571-4b6c-875b-d11feb7e8467"
+    }
+  ],
+  "name": "Kimball, Brady - 1",
+  "status": "active",
+  "resourceType": "Location"
+}

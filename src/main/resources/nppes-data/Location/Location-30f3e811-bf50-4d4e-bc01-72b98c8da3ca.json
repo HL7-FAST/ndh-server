@@ -1,0 +1,47 @@
+{
+  "id": "30f3e811-bf50-4d4e-bc01-72b98c8da3ca",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "address": {
+    "city": "Helena",
+    "country": "US",
+    "line": [
+      "2195 E CUSTER AVE"
+    ],
+    "postalCode": "59602-1217",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "30f3e811-bf50-4d4e-bc01-72b98c8da3ca"
+    }
+  ],
+  "name": "Yellowstone Vision Care Inc Pc - 1",
+  "status": "active",
+  "resourceType": "Location"
+}

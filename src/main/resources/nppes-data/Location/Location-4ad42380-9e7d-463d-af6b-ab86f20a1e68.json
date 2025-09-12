@@ -1,0 +1,47 @@
+{
+  "id": "4ad42380-9e7d-463d-af6b-ab86f20a1e68",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "address": {
+    "city": "Denver",
+    "country": "US",
+    "line": [
+      "PO BOX 912420"
+    ],
+    "postalCode": "80291-2420",
+    "state": "CO"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "4ad42380-9e7d-463d-af6b-ab86f20a1e68"
+    }
+  ],
+  "name": "Helena Laboratory Physicians - 2",
+  "status": "active",
+  "resourceType": "Location"
+}

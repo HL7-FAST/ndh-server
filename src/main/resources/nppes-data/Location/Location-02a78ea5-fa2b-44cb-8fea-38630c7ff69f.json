@@ -1,0 +1,47 @@
+{
+  "id": "02a78ea5-fa2b-44cb-8fea-38630c7ff69f",
+  "meta": {
+    "lastUpdated": "2025-09-11T20:39:10.000-05:00",
+    "profile": [
+      "http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-Location"
+    ]
+  },
+  "extension": [
+    {
+      "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-verification-status",
+      "valueCodeableConcept": {
+        "coding": [
+          {
+            "code": "not-required",
+            "display": "Not Required",
+            "system": "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
+          }
+        ]
+      }
+    }
+  ],
+  "address": {
+    "city": "East Helena",
+    "country": "US",
+    "line": [
+      "232 QUARTER CIRCLE RD"
+    ],
+    "postalCode": "59635-9613",
+    "state": "MT"
+  },
+  "identifier": [
+    {
+      "extension": [
+        {
+          "url": "http://hl7.org/fhir/us/ndh/StructureDefinition/base-ext-identifier-status",
+          "valueCode": "active"
+        }
+      ],
+      "system": "http://www.ndh.org/identifiers/Location",
+      "value": "02a78ea5-fa2b-44cb-8fea-38630c7ff69f"
+    }
+  ],
+  "name": "Struble, Craig - 1",
+  "status": "active",
+  "resourceType": "Location"
+}

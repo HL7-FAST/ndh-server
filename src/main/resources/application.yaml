@@ -170,7 +170,7 @@ hapi:
     ###    example from registry (packages.fhir.org)
       ndh:
         name: hl7.fhir.us.ndh
-        version: 2.0.0
+        version: 2.0.0-current
         packageUrl: https://build.fhir.org/ig/HL7/fhir-us-ndh/package.tgz
         installMode: STORE_AND_INSTALL
       us-core-610:

@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <properties>
@@ -44,14 +44,14 @@
     </repositories>
 
     <dependencyManagement>
-       <dependencies>
+        <dependencies>
 
             <dependency>
-               <groupId>org.glassfish.jaxb</groupId>
-               <artifactId>jaxb-runtime</artifactId>
-               <version>2.3.8</version>
-           </dependency>
-       </dependencies>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>2.3.8</version>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 
     <dependencies>
@@ -61,8 +61,8 @@
             <artifactId>postgresql</artifactId>
         </dependency>
         <dependency>
-          <groupId>com.microsoft.sqlserver</groupId>
-          <artifactId>mssql-jdbc</artifactId>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
         </dependency>
 
         <!-- Needed for Email subscriptions -->
@@ -130,9 +130,9 @@
         </dependency>
         <!-- This dependency includes the CDS Hooks Server -->
         <dependency>
-          <groupId>ca.uhn.hapi.fhir</groupId>
-          <artifactId>hapi-fhir-server-cds-hooks</artifactId>
-          <version>${project.parent.version}</version>
+            <groupId>ca.uhn.hapi.fhir</groupId>
+            <artifactId>hapi-fhir-server-cds-hooks</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
@@ -401,7 +401,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <version>${spring_boot_version}</version>
-		    <optional>true</optional>
+            <optional>true</optional>
         </dependency>
 
     </dependencies>
@@ -419,6 +419,12 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.4.0</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>dev.nx.maven</groupId>
+                    <artifactId>nx-maven-plugin</artifactId>
+                    <version>0.0.10</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -725,6 +731,6 @@
                     <version>1.17.0</version>
                 </dependency>
             </dependencies>
-        </profile>       
+        </profile>
     </profiles>
 </project>

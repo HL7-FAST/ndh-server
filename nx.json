@@ -1,0 +1,27 @@
+{
+  "installation": {
+    "version": "22.1.3",
+    "plugins": {
+      "@nx/maven": "22.1.3",
+      "@nx/docker": "22.1.3",
+      "nx-fhir": "0.1.1"
+    }
+  },
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "master",
+  "plugins": [
+    "@nx/maven",
+    {
+      "plugin": "@nx/docker",
+      "options": {
+        "buildTarget": {
+          "name": "docker:build"
+        },
+        "runTarget": {
+          "name": "docker:run"
+        }
+      }
+    },
+    "nx-fhir"
+  ]
+}

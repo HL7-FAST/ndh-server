@@ -5,8 +5,8 @@
   "sourceRoot": "src",
   "packageBase": "org.hl7.fast",
   "fhirVersion": "R4",
-  "hapiReleaseVersion": "8.2.0",
-  "pluginVersion": "0.1.1",
+  "hapiReleaseVersion": "8.6.0-1",
+  "pluginVersion": "0.1.2",
   "tags": [
     "nx-fhir-server",
     "fhir",

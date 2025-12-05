@@ -4,7 +4,7 @@
     "plugins": {
       "@nx/maven": "22.1.3",
       "@nx/docker": "22.1.3",
-      "nx-fhir": "0.1.1"
+      "nx-fhir": "0.1.2"
     }
   },
   "$schema": "./node_modules/nx/schemas/nx-schema.json",

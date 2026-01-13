@@ -4,6 +4,8 @@
 
 This is a FHIR server reference implementation of the [FAST National Directory of Healthcare Providers & Services (NDH) IG](https://build.fhir.org/ig/HL7/fhir-us-ndh/) for the current STU2 sequence.  It is built on the [HAPI FHIR JPA Starter Project](https://github.com/hapifhir/hapi-fhir-jpaserver-starter) project and more detailed configuration information can be found in that repository.
 
+A hosted instance of this server is available in the HL7 Foundry with its FHIR endpoint at: https://ndh-server.fast.hl7.org/fhir
+
 ## Prerequisites
 Building and running the server locally requires either Docker or
 - Java 17+

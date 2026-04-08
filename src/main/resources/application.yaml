@@ -201,6 +201,7 @@ hapi:
       - Endpoint
       - HealthcareService
       - InsurancePlan
+      - Group
       - Location
       - Organization
       - OrganizationAffiliation

@@ -237,7 +237,11 @@ def _chase_edges(resource, role):
     else:  # boundary: integrity-critical edges only
         if resource_type == "Organization":
             edges += [(ref, True) for ref in _refs_under(resource, ["partOf"])]
-        elif resource_type in ("Location", "Endpoint"):
+        elif resource_type == "Location":
+            edges += [
+                (ref, False) for ref in _refs_under(resource, ["managingOrganization", "partOf"])
+            ]
+        elif resource_type == "Endpoint":
             edges += [(ref, False) for ref in _refs_under(resource, ["managingOrganization"])]
         elif resource_type == "Practitioner":
             edges += [(ref, False) for ref in _issuer_refs(resource)]

@@ -146,7 +146,7 @@ spring:
 # -------------------------------------------------------------------------------------
 initial-data:
   - ig-examples
-  - nppes-data
+  - npd-data
   - test-data
 
 
@@ -307,7 +307,7 @@ hapi:
     # allow_external_references: true
     # allow_multiple_delete: true
     # allow_override_default_search_params: true
-    # auto_create_placeholder_reference_targets: false
+    auto_create_placeholder_reference_targets: true
     # mass_ingestion_mode_enabled: false
     # auto_version_reference_at_paths: Device.patient, Device.location, Device.parent, DeviceMetric.parent, DeviceMetric.source, Observation.device, Observation.subject
     # client_id_strategy: ALPHANUMERIC

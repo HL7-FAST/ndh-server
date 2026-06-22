@@ -1,6 +1,9 @@
 package org.hl7.fast.datainitializer;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.slf4j.Logger;
@@ -10,6 +13,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.util.FileCopyUtils;
 
@@ -37,6 +41,10 @@ public class DataInitializer {
   @Autowired
   private ResourceLoader resourceLoader;
 
+  // One resource to load: a label for logging plus its raw JSON text. A .json
+  // file contributes one item; a .ndjson file contributes one item per line.
+  private record LoadItem(String label, String text) {}
+
   @PostConstruct
   public void initializeData() {
 
@@ -46,13 +54,12 @@ public class DataInitializer {
 
     logger.info("Initializing data");
 
-  for (String directoryPath : dataInitializerProperties.getInitialData()) {
+    for (String directoryPath : dataInitializerProperties.getInitialData()) {
       logger.info("Loading resources from directory: " + directoryPath);
 
-      Resource[] resources = null;
-
+      List<LoadItem> queue;
       try {
-        resources = ResourcePatternUtils.getResourcePatternResolver(resourceLoader).getResources("classpath:" + directoryPath + "/**/*.json");  
+        queue = collectItems(directoryPath);
       } catch (Exception e) {
         logger.error("Error loading resources from directory: " + directoryPath, e);
         continue;
@@ -60,7 +67,6 @@ public class DataInitializer {
 
       // Retry loop to allow out-of-order loading while keeping referential integrity enabled.
       // If a resource fails due to missing references, we defer it to a later pass.
-      java.util.List<Resource> queue = new java.util.ArrayList<>(java.util.Arrays.asList(resources));
       int pass = 0;
       int loadedTotal = 0;
 
@@ -68,21 +74,20 @@ public class DataInitializer {
         pass++;
         int loadedThisPass = 0;
 
-        java.util.Iterator<Resource> it = queue.iterator();
+        Iterator<LoadItem> it = queue.iterator();
         while (it.hasNext()) {
-          Resource resource = it.next();
+          LoadItem item = it.next();
           try {
-            String resourceText = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()), StandardCharsets.UTF_8);
-            IBaseResource fhirResource = fhirContext.newJsonParser().parseResource(resourceText);
+            IBaseResource fhirResource = fhirContext.newJsonParser().parseResource(item.text());
             IFhirResourceDao<IBaseResource> dao = daoRegistry.getResourceDao(fhirResource);
             dao.update(fhirResource, new SystemRequestDetails());
             it.remove();
             loadedThisPass++;
             loadedTotal++;
-            logger.debug("Loaded resource: {} (pass {})", resource.getFilename(), pass);
+            logger.debug("Loaded resource: {} (pass {})", item.label(), pass);
           } catch (Exception e) {
             // Defer and try again in the next pass
-            logger.trace("Deferring resource {} until dependencies exist: {}", resource.getFilename(), e.getMessage());
+            logger.trace("Deferring resource {} until dependencies exist: {}", item.label(), e.getMessage());
           }
         }
 
@@ -90,8 +95,8 @@ public class DataInitializer {
 
         if (loadedThisPass == 0) {
           // No progress made; break to avoid infinite loop and report failures.
-          for (Resource remaining : queue) {
-            logger.warn("Failed to load resource after {} passes: {}", pass, remaining.getFilename());
+          for (LoadItem remaining : queue) {
+            logger.warn("Failed to load resource after {} passes: {}", pass, remaining.label());
           }
           break;
         }
@@ -100,5 +105,38 @@ public class DataInitializer {
 
     }
 
+  }
+
+  // Collect load items from both *.json files (one resource each) and *.ndjson
+  // files (one resource per line) anywhere under the directory.
+  private List<LoadItem> collectItems(String directoryPath) throws Exception {
+    ResourcePatternResolver resolver = ResourcePatternUtils.getResourcePatternResolver(resourceLoader);
+    List<LoadItem> items = new ArrayList<>();
+
+    for (Resource resource : resolver.getResources("classpath:" + directoryPath + "/**/*.json")) {
+      try {
+        String text = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()), StandardCharsets.UTF_8);
+        items.add(new LoadItem(resource.getFilename(), text));
+      } catch (Exception e) {
+        logger.error("Failed to read {}: {}", resource.getFilename(), e.getMessage());
+      }
+    }
+
+    for (Resource resource : resolver.getResources("classpath:" + directoryPath + "/**/*.ndjson")) {
+      try {
+        String content = new String(FileCopyUtils.copyToByteArray(resource.getInputStream()), StandardCharsets.UTF_8);
+        String[] lines = content.split("\\r?\\n");
+        for (int i = 0; i < lines.length; i++) {
+          String line = lines[i].trim();
+          if (!line.isEmpty()) {
+            items.add(new LoadItem(resource.getFilename() + ":" + (i + 1), line));
+          }
+        }
+      } catch (Exception e) {
+        logger.error("Failed to read {}: {}", resource.getFilename(), e.getMessage());
+      }
+    }
+
+    return items;
   }
 }

@@ -41,6 +41,10 @@ def build_config(argv=None):
         "--raw", action="store_true",
         help="Port CMS resources as-is, skipping NDH conversion (filtering and references still apply)",
     )
+    parser.add_argument(
+        "--ndjson", action="store_true",
+        help="Write one NDJSON file per resource type instead of one JSON file per resource",
+    )
     parser.add_argument("--no-samples", action="store_true", help="Skip the added sample resources")
     parser.add_argument(
         "--append", action="store_true", help="Add to the output directory instead of clearing it"
@@ -95,6 +99,7 @@ def build_config(argv=None):
         max_resources=args.max_resources,
         partof_depth_cap=args.partof_depth_cap,
         raw=args.raw,
+        ndjson=args.ndjson,
         samples=not args.no_samples,
         append=args.append,
         min_counts=min_counts,

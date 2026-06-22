@@ -47,6 +47,9 @@ Options:
 - `--raw` ports the CMS resources unchanged, skipping the NDH conversion
   (code systems, extensions, etc.). Filtering and reference handling still
   apply. Off by default. Pair with `--no-samples` for a pure CMS subset.
+- `--ndjson` writes one NDJSON file per resource type (`Endpoint.ndjson`,
+  `Practitioner.ndjson`, ...) instead of one JSON file per resource. The
+  server's DataInitializer loads both layouts.
 - `--no-samples` skips the added sample resources.
 - `--append` adds to the output directory instead of clearing it, so you can
   build up several cities across runs.

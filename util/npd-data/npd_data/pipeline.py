@@ -3,6 +3,8 @@
 import copy
 import hashlib
 import logging
+import shutil
+import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -11,7 +13,7 @@ from . import download
 from .check import find_dangling_references
 from .cleanup import strip_unresolved, transform_resource
 from .constants import RESOURCE_TYPES
-from .output import write_manifest, write_seed_data
+from .output import write_individual, write_manifest, write_seed_data
 from .samples import SamplesConfig, build_samples
 from .subset import SubsetConfig, run_subset
 from .terminology import NUCC_SYSTEM, collect_codes, fetch_nucc_displays, load_display_map
@@ -30,6 +32,7 @@ class PipelineConfig:
     max_resources: int = 15000
     partof_depth_cap: int = 3
     raw: bool = False       # port CMS resources as-is, skipping NDH conversion
+    ndjson: bool = False    # write one NDJSON file per type instead of per-resource files
     samples: bool = True
     append: bool = False    # add to output_dir instead of clearing it first
     min_counts: dict = field(default_factory=dict)
@@ -164,6 +167,7 @@ def run_pipeline(config):
         "max_resources": config.max_resources,
         "partof_depth_cap": config.partof_depth_cap,
         "raw": config.raw,
+        "ndjson": config.ndjson,
         "samples": config.samples,
     }
     if config.ndh_package and Path(config.ndh_package).exists():
@@ -172,14 +176,20 @@ def run_pipeline(config):
             Path(config.ndh_package).read_bytes()
         ).hexdigest()
 
-    write_seed_data(resources, config.output_dir, clean=not config.append)
+    write_seed_data(resources, config.output_dir, clean=not config.append, ndjson=config.ndjson)
 
     validation_errors = None
     error_categories = []
     if not config.skip_validate:
-        # Validate the per-type subdirectories; MANIFEST.md sits at the root
-        # and is left out so the validator only sees FHIR files.
-        type_dirs = sorted(p for p in Path(config.output_dir).iterdir() if p.is_dir())
+        # The validator reads one resource per file, so in NDJSON mode stage a
+        # temporary per-resource copy for it.
+        if config.ndjson:
+            validate_root = Path(tempfile.mkdtemp(prefix="npd-validate-"))
+            write_individual(resources, validate_root)
+        else:
+            validate_root = Path(config.output_dir)
+        # Per-type subdirectories only, so the validator never sees MANIFEST.md.
+        type_dirs = sorted(p for p in validate_root.iterdir() if p.is_dir())
         html_path = Path(config.output_dir) / "validation.html"
         compact_path = Path(config.output_dir) / "validation.txt"
         ok, output = run_validator(
@@ -190,6 +200,8 @@ def run_pipeline(config):
             html_output=html_path,
             compact_output=compact_path,
         )
+        if config.ndjson:
+            shutil.rmtree(validate_root, ignore_errors=True)
         report = compact_path.read_text() if compact_path.exists() else ""
         validation_errors, error_categories = summarize_validation(report)
         if not ok and validation_errors == 0:

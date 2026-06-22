@@ -1,0 +1,1 @@
+{"active":true,"id":"OrganizationAffiliation-50ca2a80-1a3f-4072-a527-b980bd8b197f","meta":{"lastUpdated":"2026-05-07T22:29:01.394782Z","profile":["http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-OrganizationAffiliation"]},"participatingOrganization":{"reference":"Organization/Organization-1669234449"},"resourceType":"OrganizationAffiliation"}

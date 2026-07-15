@@ -1,7 +1,9 @@
 """Release discovery and resumable downloads from directory.cms.gov.
 
-- /api/release.json is the file inventory; filenames embed release
-  timestamps and change between releases.
+- /downloads/manifest.json is the file inventory: a dict of
+  {Type}_{date}_{time}.ndjson names to size info; the actual downloads are
+  the zstd-compressed .ndjson.zst variants and compressed_bytes is their
+  size.
 - /downloads/{file} redirects to a presigned S3 URL valid for one hour; the
   redirect is re-followed on every attempt and never cached. HEAD is
   rejected; Range GETs work.
@@ -19,9 +21,28 @@ DEFAULT_BASE_URL = "https://directory.cms.gov"
 
 
 def fetch_release():
-    response = requests.get(DEFAULT_BASE_URL + "/api/release.json", timeout=30)
+    """Fetch the manifest, normalized to the entry shape download_file expects.
+
+    release_date comes from the timestamp embedded in the filenames since the
+    manifest no longer carries one.
+    """
+    response = requests.get(DEFAULT_BASE_URL + "/downloads/manifest.json", timeout=30)
     response.raise_for_status()
-    return response.json()
+    manifest = response.json()
+    files = []
+    release_date = "unknown"
+    for name, info in sorted(manifest.get("files", {}).items()):
+        stem, _, _ = name.partition(".")
+        resource_name, _, release_date = stem.partition("_")
+        files.append(
+            {
+                "resource_name": resource_name,
+                "filename": name + ".zst",
+                "download_path": "/downloads/" + name + ".zst",
+                "compressed_bytes": info.get("compressed_bytes"),
+            }
+        )
+    return {"release_date": release_date, "files": files}
 
 
 def download_file(entry, cache_dir):

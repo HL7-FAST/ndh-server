@@ -147,15 +147,23 @@ def _transform_chunk(lines):
     nothing but file I/O.
     """
     out = []
+    # Stripped references split by why the target is absent: dropped by the
+    # conformance pass, or never present in the source files at all.
+    stripped_dropped = 0
+    stripped_missing = 0
     for line in lines:
         resource = loads(line)
         if f"{resource['resourceType']}/{resource['id']}" not in _worker["kept_refs"]:
             continue
         if not _worker["raw"]:
             resource = transform_resource(resource, _worker["display_map"])
-        resource = strip_unresolved(resource, _worker["kept_refs"])
+        for ref in strip_unresolved(resource, _worker["kept_refs"]):
+            if ref in _worker["dropped_refs"]:
+                stripped_dropped += 1
+            else:
+                stripped_missing += 1
         out.append(orjson.dumps(resource, option=orjson.OPT_SORT_KEYS))
-    return b"\n".join(out) + (b"\n" if out else b""), len(out)
+    return b"\n".join(out) + (b"\n" if out else b""), len(out), stripped_dropped, stripped_missing
 
 
 def _chunk_lines(paths, size):
@@ -194,6 +202,7 @@ def run_full(config, sources, source_files, release_date):
         display_map.update(fetch_nucc_displays(_cache_root(config) / "nucc-displays.json"))
     log.info("pass 1/2: collecting conformant resources")
     kept_refs = set()
+    dropped_refs = set()
     drop_counts = {}
     # Telecom-less roles satisfy pd-1 only through their endpoints; whether
     # those endpoints survive is not known until pass 1 has seen every type.
@@ -218,6 +227,7 @@ def run_full(config, sources, source_files, release_date):
                         ]
                 else:
                     drop_counts[reason] = drop_counts.get(reason, 0) + 1
+                    dropped_refs.add(f"{resource['resourceType']}/{resource['id']}")
         log.info(
             "  %s: %d kept, %d dropped",
             resource_type, len(kept_refs) - before_kept, sum(drop_counts.values()) - before_dropped,
@@ -232,6 +242,7 @@ def run_full(config, sources, source_files, release_date):
             len(unrepairable),
         )
         kept_refs.difference_update(unrepairable)
+        dropped_refs.update(unrepairable)
         drop_counts["PractitionerRole whose only contact endpoints were dropped"] = len(unrepairable)
     dropped = sum(drop_counts.values())
 
@@ -241,27 +252,35 @@ def run_full(config, sources, source_files, release_date):
     output_dir.mkdir(parents=True, exist_ok=True)
     counts = {}
     jobs = _transform_jobs()
-    _worker.update(kept_refs=kept_refs, display_map=display_map, raw=config.raw)
+    _worker.update(
+        kept_refs=kept_refs, dropped_refs=dropped_refs, display_map=display_map, raw=config.raw
+    )
     log.info(
         "pass 2/2: transforming and writing %d resources (%d worker process(es))",
         len(kept_refs), jobs,
     )
+    refs_to_dropped = 0
+    refs_missing = 0
     for resource_type in sorted(sources):
         written = 0
         with open(output_dir / ndjson_filename(resource_type), "wb") as out:
             chunks = _chunk_lines(sources[resource_type], 500)
             if jobs == 1:
                 results = map(_transform_chunk, chunks)
-                for data, count in results:
+                for data, count, to_dropped, missing in results:
                     out.write(data)
                     written += count
+                    refs_to_dropped += to_dropped
+                    refs_missing += missing
             else:
                 # A pool per type keeps worker lifetimes short, releasing the
                 # copy-on-write growth between types.
                 with multiprocessing.Pool(jobs) as pool:
-                    for data, count in pool.imap(_transform_chunk, chunks):
+                    for data, count, to_dropped, missing in pool.imap(_transform_chunk, chunks):
                         out.write(data)
                         written += count
+                        refs_to_dropped += to_dropped
+                        refs_missing += missing
         counts[resource_type] = written
         log.info("  %s: %d written", resource_type, written)
 
@@ -279,6 +298,9 @@ def run_full(config, sources, source_files, release_date):
     # Per-reason keys share the total's prefix so they sort directly under it.
     for reason, count in sorted(drop_counts.items()):
         parameters[f"nonconformant_dropped ({reason})"] = count
+    parameters["references_stripped"] = refs_to_dropped + refs_missing
+    parameters["references_stripped (target dropped as nonconformant)"] = refs_to_dropped
+    parameters["references_stripped (target missing from source data)"] = refs_missing
     if config.ndh_package and Path(config.ndh_package).exists():
         parameters["ndh_package_sha256"] = hashlib.sha256(
             Path(config.ndh_package).read_bytes()
@@ -301,6 +323,11 @@ def run_full(config, sources, source_files, release_date):
         "counts": dict(sorted(counts.items())),
         "nonconformant_dropped": dropped,
         "nonconformant_dropped_by_reason": dict(sorted(drop_counts.items())),
+        "references_stripped": refs_to_dropped + refs_missing,
+        "references_stripped_by_reason": {
+            "target dropped as nonconformant": refs_to_dropped,
+            "target missing from source data": refs_missing,
+        },
         "validation_errors": None,
     }
     log.info("pipeline complete: %s", summary)
@@ -354,7 +381,8 @@ def run_pipeline(config):
             for ref, resource in subset.kept.items()
         }
     kept_refs = set(kept)
-    kept = {ref: strip_unresolved(resource, kept_refs) for ref, resource in kept.items()}
+    for resource in kept.values():
+        strip_unresolved(resource, kept_refs)
     roles_repaired = roles_dropped = 0
     if not config.raw:
         roles_repaired, roles_dropped = _repair_role_contacts(kept)

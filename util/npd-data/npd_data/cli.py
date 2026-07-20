@@ -216,6 +216,9 @@ def main(argv=None):
         print(f"Nonconformant dropped: {summary['nonconformant_dropped']}")
         for reason, count in summary.get("nonconformant_dropped_by_reason", {}).items():
             print(f"  {reason}: {count}")
+        print(f"References stripped: {summary['references_stripped']}")
+        for reason, count in summary.get("references_stripped_by_reason", {}).items():
+            print(f"  {reason}: {count}")
     if summary["validation_errors"] is not None:
         print(f"Validation:   {summary['validation_errors']} errors ({config.output_dir}/validation.txt)")
     return 0

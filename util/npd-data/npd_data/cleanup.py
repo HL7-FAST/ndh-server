@@ -209,20 +209,23 @@ def strip_unresolved(resource, kept_refs):
     """Remove every reference whose target is outside the kept set, in place.
 
     Containers emptied by a removal (arrays, or extension entries left with
-    only a url) are removed too.
+    only a url) are removed too. Returns the removed reference strings;
+    cascade removals of emptied containers are not included.
     """
-    _prune(resource, kept_refs, is_root=True)
-    return resource
+    removed = []
+    _prune(resource, kept_refs, removed, is_root=True)
+    return removed
 
 
-def _prune(node, kept_refs, is_root=False):
+def _prune(node, kept_refs, removed, is_root=False):
     if isinstance(node, dict):
         reference = node.get("reference")
         if not is_root and isinstance(reference, str) and reference not in kept_refs:
+            removed.append(reference)
             return _REMOVE
         removed_any = False
         for key in list(node):
-            if _prune(node[key], kept_refs) is _REMOVE:
+            if _prune(node[key], kept_refs, removed) is _REMOVE:
                 del node[key]
                 removed_any = True
         # Collapse a container only if our removal emptied it; leave
@@ -232,7 +235,7 @@ def _prune(node, kept_refs, is_root=False):
         return node
     if isinstance(node, list):
         had_items = bool(node)
-        node[:] = [item for item in node if _prune(item, kept_refs) is not _REMOVE]
+        node[:] = [item for item in node if _prune(item, kept_refs, removed) is not _REMOVE]
         if had_items and not node:
             return _REMOVE
         return node

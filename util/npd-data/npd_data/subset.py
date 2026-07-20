@@ -14,12 +14,10 @@ source files) are recorded in dropped_targets for later stripping.
 import logging
 from dataclasses import dataclass, field
 
-import orjson
-
 from .addresses import AnchorMatcher
 from .constants import EXT_ENDPOINT_REFERENCE
 from .conformance import conformance_keep
-from .ndjson import iter_ndjson
+from .ndjson import iter_ndjson, loads
 
 log = logging.getLogger(__name__)
 
@@ -67,7 +65,7 @@ def run_subset(sources, config):
             for line in iter_ndjson(path, raw=True):
                 if not matcher.line_might_match(line.lower()):
                     continue
-                resource = orjson.loads(line)
+                resource = loads(line)
                 if not conformance_keep(resource):
                     continue
                 if matcher.matches(resource):

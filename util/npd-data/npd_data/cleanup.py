@@ -1,11 +1,10 @@
 """NDH 2.0 conversion rules for CMS NPD records.
 
 Each rule mutates a resource in place and returns it. transform_resource()
-applies the full rule set to a deep copy, so callers' inputs are never
-mutated.
+applies the full rule set to the resource itself; callers that need the
+original must copy it first. The deep copy this used to make was half the
+per-record CPU at full-corpus scale.
 """
-
-import copy
 
 from .constants import (
     ACCEPTING_PATIENTS_SYSTEM,
@@ -199,12 +198,11 @@ _RULES = [
 
 
 def transform_resource(resource, display_map=None):
-    out = copy.deepcopy(resource)
     for rule in _RULES:
-        out = rule(out)
+        resource = rule(resource)
     if display_map:
-        correct_displays(out, display_map)
-    return out
+        correct_displays(resource, display_map)
+    return resource
 
 
 def strip_unresolved(resource, kept_refs):

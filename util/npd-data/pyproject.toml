@@ -7,6 +7,7 @@ dependencies = [
     "orjson>=3.9",
     "zstandard>=0.22",
     "requests>=2.31",
+    "psutil>=7.2.2",
 ]
 
 [build-system]

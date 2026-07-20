@@ -4,6 +4,7 @@ Files are read line by line; a full file is never held in memory.
 """
 
 import io
+import json
 from pathlib import Path
 
 import orjson
@@ -31,4 +32,11 @@ def _iter_lines(text_stream, raw):
         line = line.strip()
         if not line:
             continue
-        yield line if raw else orjson.loads(line)
+        yield line if raw else loads(line)
+
+
+def loads(line):
+    try:
+        return orjson.loads(line)
+    except orjson.JSONDecodeError:
+        return json.loads(line, strict=False)

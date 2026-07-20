@@ -1,5 +1,5 @@
 """Seed data output: either one JSON file per resource at {Type}/{id}.json,
-or one NDJSON file per resource type ({Type}.ndjson), plus a MANIFEST.md.
+or one NDJSON file per resource type ({NN}-{Type}.ndjson), plus a MANIFEST.md.
 
 Keys are sorted and resources written in sorted order so regenerated output
 diffs cleanly. MANIFEST.md uses a non-.json/.ndjson extension because the
@@ -10,6 +10,30 @@ import shutil
 from pathlib import Path
 
 import orjson
+
+# NDJSON filename prefixes put referenced types before the types that
+# reference them, so a server loading files in name order resolves most
+# references on its first pass. The Organization/Endpoint cycle cannot be
+# ordered away; the server's retry pass covers it.
+LOAD_ORDER = [
+    "Organization",
+    "Practitioner",
+    "Endpoint",
+    "Location",
+    "HealthcareService",
+    "InsurancePlan",
+    "PractitionerRole",
+    "OrganizationAffiliation",
+    "VerificationResult",
+]
+
+
+def ndjson_filename(resource_type):
+    try:
+        order = LOAD_ORDER.index(resource_type) + 1
+    except ValueError:
+        order = 99
+    return f"{order:02d}-{resource_type}.ndjson"
 
 
 def write_seed_data(resources, output_dir, clean=True, ndjson=False):
@@ -34,9 +58,9 @@ def write_individual(resources, output_dir):
 
 
 def _write_ndjson(resources, output_dir, merge):
-    """One {Type}.ndjson file per resource type, one resource per line.
+    """One {NN}-{Type}.ndjson file per resource type, one resource per line.
 
-    With merge, existing {Type}.ndjson resources are kept and overlaid by the
+    With merge, existing *.ndjson resources are kept and overlaid by the
     new ones (same id wins), so --append accumulates across runs.
     """
     by_type = {}
@@ -46,11 +70,12 @@ def _write_ndjson(resources, output_dir, merge):
                 if line.strip():
                     existing = orjson.loads(line)
                     by_type.setdefault(existing["resourceType"], {})[existing["id"]] = existing
+            path.unlink()  # rewritten below, possibly under a new load-order prefix
     for resource in resources:
         by_type.setdefault(resource["resourceType"], {})[resource["id"]] = resource
     for resource_type, items in sorted(by_type.items()):
         lines = [orjson.dumps(items[rid], option=orjson.OPT_SORT_KEYS) for rid in sorted(items)]
-        (output_dir / f"{resource_type}.ndjson").write_bytes(b"\n".join(lines) + b"\n")
+        (output_dir / ndjson_filename(resource_type)).write_bytes(b"\n".join(lines) + b"\n")
 
 
 def write_manifest(output_dir, info):
@@ -73,16 +98,20 @@ def _manifest_markdown(info):
     lines += [f"- {key}: {value}" for key, value in sorted(info.get("parameters", {}).items())]
     lines += ["", "## Resource counts", ""]
     lines += [f"- {key}: {value}" for key, value in sorted(info.get("counts", {}).items())]
-    dropped = info.get("dropped_targets", [])
-    lines += ["", f"## Stripped reference targets ({len(dropped)})", ""]
-    lines += [f"- {ref}" for ref in sorted(dropped)]
+    # None means the run does not itemize stripped targets (the full-data
+    # pipeline strips references to every nonconformant_dropped resource,
+    # far too many to list); the section only appears when a list exists.
+    dropped = info.get("dropped_targets")
+    if dropped is not None:
+        lines += ["", f"## Stripped reference targets ({len(dropped)})", ""]
+        lines += [f"- {ref}" for ref in sorted(dropped)]
     lines += ["", "## Validation", ""]
     errors = info.get("validation_errors")
     if errors is None:
         lines.append("- skipped")
     else:
         lines.append(f"- errors: {errors}")
-        lines.append("- reports: validation.html, validation.txt")
+        lines.append("- report: validation.txt")
         categories = info.get("error_categories") or []
         if categories:
             lines += ["", "### Errors by category", ""]

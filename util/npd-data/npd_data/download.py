@@ -10,6 +10,7 @@
 - No checksums are published, so integrity checking is size-based.
 """
 
+import hashlib
 import logging
 from pathlib import Path
 
@@ -18,6 +19,48 @@ import requests
 log = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://directory.cms.gov"
+NDH_PACKAGE_URL = "https://build.fhir.org/ig/HL7/fhir-us-ndh/package.tgz"
+VALIDATOR_JAR_URL = (
+    "https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar"
+)
+
+
+def fetch_ndh_package(spec, cache_dir, force=False):
+    """Resolve the NDH package to a local file; see _fetch_artifact."""
+    return _fetch_artifact(spec, cache_dir, NDH_PACKAGE_URL, "ndh-package", ".tgz", force)
+
+
+def fetch_validator_jar(spec, cache_dir, force=False):
+    """Resolve the HAPI validator jar to a local file; see _fetch_artifact."""
+    return _fetch_artifact(spec, cache_dir, VALIDATOR_JAR_URL, "validator", ".jar", force)
+
+
+def _fetch_artifact(spec, cache_dir, default_url, name, suffix, force):
+    """Resolve a path-or-URL spec to a local file, downloading URLs into cache_dir.
+
+    spec may be a filesystem path (returned as-is), an http(s) URL, or None for
+    default_url. Downloads are cached by URL and reused; both defaults point at
+    moving targets (the current IG build, the latest validator release), so pass
+    force to re-download.
+    """
+    if spec and not str(spec).startswith(("http://", "https://")):
+        return Path(spec)
+    url = str(spec) if spec else default_url
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    target = cache_dir / f"{name}-{hashlib.sha1(url.encode()).hexdigest()[:12]}{suffix}"
+    if target.exists() and not force:
+        return target
+    log.info("downloading %s from %s", name, url)
+    part = target.with_suffix(target.suffix + ".part")
+    with requests.get(url, stream=True, timeout=120) as response:
+        response.raise_for_status()
+        with open(part, "wb") as fh:
+            for chunk in response.iter_content(1 << 20):
+                fh.write(chunk)
+    part.replace(target)
+    log.info("downloaded %s (%d bytes)", target.name, target.stat().st_size)
+    return target
 
 
 def fetch_release():

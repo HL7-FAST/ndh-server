@@ -1,0 +1,1 @@
+{"active":true,"id":"PractitionerRole-93a2fc52-eb13-4138-82af-3d7f0c6f4121","meta":{"lastUpdated":"2026-09-29T04:03:40.842511Z","profile":["http://hl7.org/fhir/us/ndh/StructureDefinition/ndh-PractitionerRole"]},"practitioner":{"reference":"Practitioner/Practitioner-1760917967"},"resourceType":"PractitionerRole","telecom":[{"system":"phone","use":"work","value":"4064442100"}]}

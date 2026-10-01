@@ -7,8 +7,9 @@ The tool downloads the published files, keeps the records for a chosen city,
 cleans them up to conform to the NDH implementation guide, validates
 everything, and writes one JSON file per resource in the layout the server
 loads at startup. With `--samples` it also adds a small set of sample
-resources for the types CMS does not publish (networks, healthcare services,
-insurance plans, verifications, and a provider group).
+resources for the NDH types the CMS files do not cover with conformant
+records (networks, healthcare services, insurance plans, verifications, and
+a provider group).
 
 ## Requirements
 
@@ -65,7 +66,7 @@ Selecting records:
   of a city subset. Implies `--ndjson` and `--skip-validate`.
 - `--min-count Practitioner=200` fails the run if a resource type comes up
   short, a sign the chosen city is too small.
-- `--max-resources` (default 15000) fails the run instead of producing an
+- `--max-resources` (default 20000) fails the run instead of producing an
   oversized data set.
 
 Transforming:
@@ -73,9 +74,9 @@ Transforming:
 - `--raw` ports the CMS resources unchanged, skipping the NDH conversion
   (code systems, extensions, etc.). Filtering and reference handling still
   apply. Off by default.
-- `--samples` adds sample resources for the types CMS does not publish
-  (networks, healthcare services, insurance plans, verifications, and a
-  provider group). Off by default.
+- `--samples` adds sample resources for the types the CMS files do not
+  cover with conformant records (networks, healthcare services, insurance
+  plans, verifications, and a provider group). Off by default.
 
 Writing output:
 
@@ -129,7 +130,7 @@ Each step lives in the matching source file under `npd_data/`.
 3. **Add their connections** (`subset.py`): keep the roles and affiliations that link those records.
 4. **Fill in references** (`subset.py`): pull in everything those records point to, so nothing is left dangling.
 5. **Clean up** (`cleanup.py`): fix the CMS data so it conforms to the NDH implementation guide.
-6. **Add samples** (`samples.py`): with `--samples`, create sample resources for the types CMS does not publish.
+6. **Add samples** (`samples.py`): with `--samples`, create sample resources for the types the CMS files do not cover with conformant records.
 7. **Check links** (`check.py`): confirm every reference resolves inside the set.
 8. **Validate** (`validate.py`): run the FHIR validator against the NDH package, sharded across CPU cores (the resources are split into N groups, each validated by its own process with its own terminology cache), and concatenate the per-shard eslint-compact output into `validation.txt` next to `MANIFEST.md`. Validation errors are counted and reported, not treated as fatal; review the report.
 9. **Save** (`output.py`): write one JSON file per resource, plus a MANIFEST.md.

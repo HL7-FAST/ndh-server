@@ -44,21 +44,6 @@ def _walk_concepts(concepts):
         yield from _walk_concepts(concept.get("concept", []))
 
 
-def collect_codes(resources, system):
-    """Return the set of codes used on the given coding system across resources."""
-    codes = set()
-    stack = list(resources)
-    while stack:
-        node = stack.pop()
-        if isinstance(node, dict):
-            if node.get("system") == system and node.get("code"):
-                codes.add(node["code"])
-            stack.extend(node.values())
-        elif isinstance(node, list):
-            stack.extend(node)
-    return codes
-
-
 def fetch_nucc_displays(cache_path=None):
     """Return {(NUCC_SYSTEM, code): display} for all of NUCC.
 

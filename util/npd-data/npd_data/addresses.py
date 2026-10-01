@@ -1,8 +1,8 @@
 """Address access and geographic anchor matching.
 
 Location.address is a single object while Practitioner.address and
-Organization.address are arrays; resource_addresses() normalizes both shapes
-to a list. City matching is case-insensitive and whitespace-tolerant.
+Organization.address are arrays, so resource_addresses() normalizes both
+shapes to a list. City matching is case-insensitive and whitespace-tolerant.
 """
 
 import re
@@ -50,6 +50,6 @@ class AnchorMatcher:
         """Cheap pre-parse screen for a lowercased raw NDJSON line.
 
         Requires every token of some city to appear in the line. False
-        positives are fine; false negatives are not.
+        positives are fine. False negatives are not.
         """
         return any(all(token in line_lower for token in tokens) for tokens in self._city_tokens)

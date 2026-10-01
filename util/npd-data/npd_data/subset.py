@@ -3,8 +3,8 @@
 Each kept record has a role:
 - anchored: a Practitioner, Organization, or Location whose address is in the city.
 - related: a PractitionerRole or OrganizationAffiliation that links to an anchor.
-- boundary: a record pulled in only to satisfy a reference from a kept record;
-  it follows only the integrity-critical edges (partOf, managingOrganization,
+- boundary: a record pulled in only to satisfy a reference from a kept record.
+  It follows only the integrity-critical edges (partOf, managingOrganization,
   qualification.issuer).
 
 References that cannot be kept (nonconformant, depth-capped, or missing from the
@@ -33,7 +33,7 @@ class BudgetExceeded(Exception):
 class SubsetConfig:
     cities: list
     state: str
-    max_resources: int = 15000
+    max_resources: int = 20000
     partof_depth_cap: int = 3
 
 
@@ -88,7 +88,7 @@ def run_subset(sources, config):
         check_budget()
     log.info("relation selection kept %d resources total", len(kept))
 
-    # wanted: type -> {ref: partOf depth}; depth counts Organization.partOf
+    # wanted: type -> {ref: partOf depth}. Depth counts Organization.partOf
     # hops only, every other edge resets to 0.
     wanted = {}
 
@@ -193,7 +193,7 @@ def _endpoint_extension_refs(resource):
 def _relation_refs(resource):
     """References on a relation row that must point at an anchor to keep the row.
 
-    A PractitionerRole qualifies through its practitioner or locations; an
+    A PractitionerRole qualifies through its practitioner or locations, and an
     OrganizationAffiliation through its participating organization.
     """
     # A role is kept via its practitioner or location, not its organization:

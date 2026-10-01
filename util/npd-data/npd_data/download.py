@@ -1,17 +1,18 @@
 """Release discovery and resumable downloads from directory.cms.gov.
 
 - /downloads/manifest.json is the file inventory: a dict of
-  {Type}_{date}_{time}.ndjson names to size info; the actual downloads are
-  the zstd-compressed .ndjson.zst variants and compressed_bytes is their
-  size.
-- /downloads/{file} redirects to a presigned S3 URL valid for one hour; the
+  {NN}-{Type}.ndjson names to size info plus a generated_at date. The actual
+  downloads are the zstd-compressed .ndjson.zst variants and compressed_bytes
+  is their size.
+- /downloads/{file} redirects to a presigned S3 URL valid for one hour. The
   redirect is re-followed on every attempt and never cached. HEAD is
-  rejected; Range GETs work.
+  rejected, Range GETs work.
 - No checksums are published, so integrity checking is size-based.
 """
 
 import hashlib
 import logging
+import re
 from pathlib import Path
 
 import requests
@@ -26,12 +27,12 @@ VALIDATOR_JAR_URL = (
 
 
 def fetch_ndh_package(spec, cache_dir, force=False):
-    """Resolve the NDH package to a local file; see _fetch_artifact."""
+    """Resolve the NDH package to a local file. See _fetch_artifact."""
     return _fetch_artifact(spec, cache_dir, NDH_PACKAGE_URL, "ndh-package", ".tgz", force)
 
 
 def fetch_validator_jar(spec, cache_dir, force=False):
-    """Resolve the HAPI validator jar to a local file; see _fetch_artifact."""
+    """Resolve the HAPI validator jar to a local file. See _fetch_artifact."""
     return _fetch_artifact(spec, cache_dir, VALIDATOR_JAR_URL, "validator", ".jar", force)
 
 
@@ -39,7 +40,7 @@ def _fetch_artifact(spec, cache_dir, default_url, name, suffix, force):
     """Resolve a path-or-URL spec to a local file, downloading URLs into cache_dir.
 
     spec may be a filesystem path (returned as-is), an http(s) URL, or None for
-    default_url. Downloads are cached by URL and reused; both defaults point at
+    default_url. Downloads are cached by URL and reused. Both defaults point at
     moving targets (the current IG build, the latest validator release), so pass
     force to re-download.
     """
@@ -63,29 +64,38 @@ def _fetch_artifact(spec, cache_dir, default_url, name, suffix, force):
     return target
 
 
-def fetch_release():
-    """Fetch the manifest, normalized to the entry shape download_file expects.
+_TYPE_TOKEN = re.compile(r"^(?:\d+-)?([A-Za-z]+)")
 
-    release_date comes from the timestamp embedded in the filenames since the
-    manifest no longer carries one.
+
+def resource_type_from_filename(name):
+    """Return the resource type token of a release file name, or None.
+
+    Accepts the NN-Type.ndjson form and a bare Type.ndjson form, with or
+    without the .zst suffix.
     """
+    match = _TYPE_TOKEN.match(Path(name).name)
+    return match.group(1) if match else None
+
+
+def fetch_release():
+    """Fetch the manifest, normalized to the entry shape download_file expects."""
     response = requests.get(DEFAULT_BASE_URL + "/downloads/manifest.json", timeout=30)
     response.raise_for_status()
-    manifest = response.json()
+    return parse_manifest(response.json())
+
+
+def parse_manifest(manifest):
     files = []
-    release_date = "unknown"
     for name, info in sorted(manifest.get("files", {}).items()):
-        stem, _, _ = name.partition(".")
-        resource_name, _, release_date = stem.partition("_")
         files.append(
             {
-                "resource_name": resource_name,
+                "resource_name": resource_type_from_filename(name),
                 "filename": name + ".zst",
                 "download_path": "/downloads/" + name + ".zst",
                 "compressed_bytes": info.get("compressed_bytes"),
             }
         )
-    return {"release_date": release_date, "files": files}
+    return {"release_date": manifest.get("generated_at", "unknown"), "files": files}
 
 
 def download_file(entry, cache_dir):

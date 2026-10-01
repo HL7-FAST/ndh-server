@@ -1,9 +1,9 @@
 """NDH 2.0 conversion rules for CMS NPD records.
 
 Each rule mutates a resource in place and returns it. transform_resource()
-applies the full rule set to the resource itself; callers that need the
-original must copy it first. The deep copy this used to make was half the
-per-record CPU at full-corpus scale.
+applies the full rule set to the resource itself and never copies it, which
+keeps per-record CPU low at full-corpus scale. Callers that need the
+original must copy it first.
 """
 
 from .constants import (
@@ -13,8 +13,7 @@ from .constants import (
     EXT_NEWPATIENTS,
     EXTENSION_URL_DROPS,
     EXTENSION_URL_REMAPS,
-    NPI_SYSTEM_CMS,
-    NPI_SYSTEM_STANDARD,
+    CODING_SYSTEM_REMAPS,
     ndh_profile,
 )
 
@@ -22,7 +21,7 @@ _REMOVE = object()
 
 
 def strip_empty_arrays(resource):
-    """Remove empty arrays and objects bottom-up; they are invalid in FHIR JSON."""
+    """Remove empty arrays and objects bottom-up, since they are invalid in FHIR JSON."""
     _strip_empties(resource)
     return resource
 
@@ -50,19 +49,20 @@ def _fix_practice_use(node):
         node["use"] = "work"
 
 
-def fix_npi_system(resource):
-    """Rewrite the nonstandard NPI system URI to the standard one."""
-    _walk_dicts(resource, _fix_npi)
+def fix_coding_systems(resource):
+    """Rewrite nonstandard system URIs (NPI naming system, NUCC value set) to the standard code systems."""
+    _walk_dicts(resource, _fix_system)
     return resource
 
 
-def _fix_npi(node):
-    if node.get("system") == NPI_SYSTEM_CMS:
-        node["system"] = NPI_SYSTEM_STANDARD
+def _fix_system(node):
+    system = node.get("system")
+    if system in CODING_SYSTEM_REMAPS:
+        node["system"] = CODING_SYSTEM_REMAPS[system]
 
 
 def remap_extensions(resource):
-    """Rename CMS extension URLs to their NDH equivalents; drop the unmappable ones."""
+    """Rename CMS extension URLs to their NDH equivalents and drop the unmappable ones."""
     _walk_dicts(resource, _remap_extension_list)
     return resource
 
@@ -141,7 +141,7 @@ def expand_newpatients(resource):
 
 
 def ensure_location_name(resource):
-    """Location.name is required in NDH; derive it from the address when absent."""
+    """Location.name is required in NDH, so derive it from the address when absent."""
     if resource.get("resourceType") != "Location" or resource.get("name"):
         return resource
     address = resource.get("address") or {}
@@ -187,7 +187,7 @@ def _correct_displays(node, display_map):
 _RULES = [
     strip_empty_arrays,
     fix_telecom_use,
-    fix_npi_system,
+    fix_coding_systems,
     remap_extensions,
     flatten_endpoint_reference,
     expand_newpatients,
@@ -209,8 +209,8 @@ def strip_unresolved(resource, kept_refs):
     """Remove every reference whose target is outside the kept set, in place.
 
     Containers emptied by a removal (arrays, or extension entries left with
-    only a url) are removed too. Returns the removed reference strings;
-    cascade removals of emptied containers are not included.
+    only a url) are removed too. Returns the removed reference strings.
+    Cascade removals of emptied containers are not included.
     """
     removed = []
     _prune(resource, kept_refs, removed, is_root=True)
@@ -228,8 +228,8 @@ def _prune(node, kept_refs, removed, is_root=False):
             if _prune(node[key], kept_refs, removed) is _REMOVE:
                 del node[key]
                 removed_any = True
-        # Collapse a container only if our removal emptied it; leave
-        # pre-existing empties untouched so raw output stays faithful.
+        # Collapse a container only if our removal emptied it. Pre-existing
+        # empties are left untouched so raw output stays faithful.
         if not is_root and removed_any and (not node or set(node) == {"url"}):
             return _REMOVE
         return node

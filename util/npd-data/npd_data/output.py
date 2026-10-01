@@ -14,7 +14,7 @@ import orjson
 # NDJSON filename prefixes put referenced types before the types that
 # reference them, so a server loading files in name order resolves most
 # references on its first pass. The Organization/Endpoint cycle cannot be
-# ordered away; the server's retry pass covers it.
+# ordered away. The server's retry pass covers it.
 LOAD_ORDER = [
     "Organization",
     "Practitioner",
@@ -100,7 +100,7 @@ def _manifest_markdown(info):
     lines += [f"- {key}: {value}" for key, value in sorted(info.get("counts", {}).items())]
     # None means the run does not itemize stripped targets (the full-data
     # pipeline strips references to every nonconformant_dropped resource,
-    # far too many to list); the section only appears when a list exists.
+    # far too many to list). The section only appears when a list exists.
     dropped = info.get("dropped_targets")
     if dropped is not None:
         lines += ["", f"## Stripped reference targets ({len(dropped)})", ""]

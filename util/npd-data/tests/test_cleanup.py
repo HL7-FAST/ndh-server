@@ -26,3 +26,49 @@ def test_strip_unresolved_no_unresolved_references():
         "practitioner": {"reference": "Practitioner/kept"},
     }
     assert strip_unresolved(resource, {"Practitioner/kept"}) == []
+
+
+def test_remap_extensions():
+    from npd_data.cleanup import remap_extensions
+    from npd_data.constants import NDH_SD
+
+    resource = {
+        "resourceType": "Practitioner",
+        "extension": [
+            {"url": NDH_SD + "base-ext-cms-identity-verified", "valueBoolean": True},
+            {"url": NDH_SD + "base-ext-cms_aligned_with_data_network", "valueBoolean": True},
+            {"url": NDH_SD + "base-ext-cms_medicare_enrollment", "valueBoolean": True},
+            {"url": NDH_SD + "base-ext-hhs-in-exclusion-list", "valueBoolean": False},
+        ],
+    }
+    urls = [ext["url"] for ext in remap_extensions(resource)["extension"]]
+    assert urls == [
+        NDH_SD + "base-ext-cms-identity-verified",
+        NDH_SD + "base-ext-cms-aligned-with-data-network",
+        NDH_SD + "base-ext-cms-medicare-enrollment-in-good-standing",
+        NDH_SD + "base-ext-hhs-exclusion-list",
+    ]
+
+
+def test_fix_coding_systems():
+    from npd_data.cleanup import fix_coding_systems
+
+    resource = {
+        "resourceType": "Practitioner",
+        "identifier": [{"system": "http://terminology.hl7.org/NamingSystem/npi", "value": "1"}],
+        "qualification": [
+            {
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://hl7.org/fhir/us/ndh/ValueSet/HealthcareIndividualTaxonomyVS",
+                            "code": "207Q00000X",
+                        }
+                    ]
+                }
+            }
+        ],
+    }
+    fix_coding_systems(resource)
+    assert resource["identifier"][0]["system"] == "http://hl7.org/fhir/sid/us-npi"
+    assert resource["qualification"][0]["code"]["coding"][0]["system"] == "http://nucc.org/provider-taxonomy"

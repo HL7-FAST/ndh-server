@@ -1,6 +1,6 @@
 """Read NDJSON files, plain or zstd-compressed, one line at a time.
 
-Files are read line by line; a full file is never held in memory.
+Files are read line by line, so a full file is never held in memory.
 """
 
 import io

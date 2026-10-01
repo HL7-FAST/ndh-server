@@ -22,18 +22,19 @@ EXT_NETWORK_REFERENCE = NDH_SD + "base-ext-network-reference"
 
 # CMS extension URLs with direct NDH equivalents.
 EXTENSION_URL_REMAPS = {
-    NDH_SD + "base-ext-cms-identity-verified": NDH_SD + "base-ext-cms-ial2-verified",
-    NDH_SD + "base-ext-cms_aligned_with_data_network": NDH_SD + "base-ext-aligned-with-cms-data-network",
-    NDH_SD + "base-ext-cms_medicare_enrollment": NDH_SD + "base-ext-cms-enrollment-in-good-standing",
+    NDH_SD + "base-ext-cms_aligned_with_data_network": NDH_SD + "base-ext-cms-aligned-with-data-network",
+    NDH_SD + "base-ext-cms_medicare_enrollment": NDH_SD + "base-ext-cms-medicare-enrollment-in-good-standing",
+    NDH_SD + "base-ext-hhs-in-exclusion-list": NDH_SD + "base-ext-hhs-exclusion-list",
 }
 
 # CMS extension URLs with no NDH equivalent.
-EXTENSION_URL_DROPS = {
-    NDH_SD + "base-ext-hhs-in-exclusion-list",
-}
+EXTENSION_URL_DROPS = set()
 
-NPI_SYSTEM_CMS = "http://terminology.hl7.org/NamingSystem/npi"
-NPI_SYSTEM_STANDARD = "http://hl7.org/fhir/sid/us-npi"
+# CMS system URIs rewritten to the standard code system URIs.
+CODING_SYSTEM_REMAPS = {
+    "http://terminology.hl7.org/NamingSystem/npi": "http://hl7.org/fhir/sid/us-npi",
+    NDH_SD.replace("StructureDefinition", "ValueSet") + "HealthcareIndividualTaxonomyVS": "http://nucc.org/provider-taxonomy",
+}
 
 ACCEPTING_PATIENTS_SYSTEM = "http://terminology.hl7.org/CodeSystem/accepting-patients"
 VERIFICATION_STATUS_SYSTEM = "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"

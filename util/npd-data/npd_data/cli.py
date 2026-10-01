@@ -42,7 +42,7 @@ def build_config(argv=None):
         "--cache-dir",
         help="Download cache directory, fetches current release (default ~/.cache/npd)",
     )
-    parser.add_argument("--max-resources", type=int, default=15000)
+    parser.add_argument("--max-resources", type=int, default=20000)
     parser.add_argument("--partof-depth-cap", type=int, default=3)
     parser.add_argument(
         "--raw", action="store_true",
@@ -55,7 +55,7 @@ def build_config(argv=None):
     parser.add_argument(
         "--samples", action="store_true",
         help=(
-            "Include sample resources for the types CMS does not publish "
+            "Include sample resources for the types the CMS files do not cover with conformant records "
             "(networks, healthcare services, insurance plans, verifications, "
             "and a provider group)"
         ),
@@ -119,7 +119,7 @@ def build_config(argv=None):
         if args.samples:
             parser.error("--samples has no effect with --all")
         # Per-resource files are not viable for all records, and validating
-        # them all takes weeks; validate a city subset for a conformance signal.
+        # them all takes weeks. Validate a city subset for a conformance signal.
         args.ndjson = True
         args.skip_validate = True
     elif not (args.cities and args.state):
@@ -129,7 +129,7 @@ def build_config(argv=None):
     # instead of after the download and subsetting work.
     if args.input_dir and not Path(args.input_dir).is_dir():
         parser.error(f"--input-dir not found: {args.input_dir}")
-    # The output directory is cleared before writing; sources must not live
+    # The output directory is cleared before writing, so sources must not live
     # in or around it or the run destroys its own input.
     output_dir = Path(args.output_dir).resolve()
     for source_option in ("input_dir", "cache_dir"):

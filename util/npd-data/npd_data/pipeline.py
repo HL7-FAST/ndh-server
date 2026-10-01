@@ -22,7 +22,7 @@ from .ndjson import iter_ndjson, loads
 from .output import ndjson_filename, write_individual, write_manifest, write_seed_data
 from .samples import SamplesConfig, build_samples
 from .subset import SubsetConfig, run_subset
-from .terminology import NUCC_SYSTEM, collect_codes, fetch_nucc_displays, load_display_map
+from .terminology import fetch_nucc_displays, load_display_map
 from .validate import run_validator_sharded, summarize_validation
 
 log = logging.getLogger(__name__)
@@ -34,9 +34,9 @@ class PipelineConfig:
     state: str = None
     all_records: bool = False   # transform all records, streaming, no city filter
     output_dir: Path = None
-    input_dir: Path = None    # pre-downloaded NDJSON dir; skips network fetch
+    input_dir: Path = None    # pre-downloaded NDJSON dir, skips the network fetch
     cache_dir: Path = None    # download cache used when input_dir is not set
-    max_resources: int = 15000
+    max_resources: int = 20000
     partof_depth_cap: int = 3
     raw: bool = False       # port CMS resources as-is, skipping NDH conversion
     ndjson: bool = False    # write one NDJSON file per type instead of per-resource files
@@ -48,14 +48,14 @@ class PipelineConfig:
     ndh_package: Path = None
     force_download: bool = False  # re-fetch the cached NDH package and validator jar
     java: str = "java"
-    shards: int = None        # parallel validator processes; None = auto (scale to cores)
+    shards: int = None        # parallel validator processes, None scales to cores
     tx_cache: Path = None     # root for per-shard terminology caches
     validator_xmx: str = "2g"  # java max heap per validator process
     html: bool = False        # also write validation.html (forces a single validator process)
 
 
 def discover_sources(directory):
-    """Group NDJSON files in a directory by their leading type token.
+    """Group NDJSON files in a directory by their type token.
 
     The comparison is exact because a Practitioner* glob would also match
     PractitionerRole files.
@@ -65,7 +65,7 @@ def discover_sources(directory):
         name = path.name
         if not (name.endswith(".ndjson") or name.endswith(".ndjson.zst")):
             continue
-        type_token = name.split("_")[0].split(".")[0]
+        type_token = download.resource_type_from_filename(name)
         if type_token in sources:
             sources[type_token].append(path)
     return {resource_type: paths for resource_type, paths in sources.items() if paths}
@@ -75,7 +75,7 @@ def _repair_role_contacts(kept):
     """Enforce us-core pd-1: a PractitionerRole must have telecom or an endpoint.
 
     Roles with neither get telecom copied from their organization or
-    practitioner; roles with no contact source are dropped.
+    practitioner. Roles with no contact source are dropped.
     """
     repaired = 0
     dropped = 0
@@ -114,6 +114,9 @@ def _load_sources(config):
             continue
         path = download.download_file(entry, config.cache_dir)
         sources.setdefault(resource_type, []).append(path)
+    if not sources:
+        names = [entry.get("filename") for entry in release.get("files", [])]
+        raise SystemExit(f"no source files matched {RESOURCE_TYPES} in the CMS manifest: {names}")
     return sources, release_date
 
 
@@ -126,7 +129,7 @@ def _drop_reason(resource, raw):
     if not conformance_keep(resource):
         return "inactive or non-active status"
     # The subset pipeline repairs contactless roles from their organization or
-    # practitioner; streaming has no lookup source, so such roles are dropped
+    # practitioner. Streaming has no lookup source, so such roles are dropped
     # instead (us-core pd-1 requires telecom or endpoint).
     if not raw and resource.get("resourceType") == "PractitionerRole":
         if not (resource.get("telecom") or resource.get("endpoint")):
@@ -135,7 +138,7 @@ def _drop_reason(resource, raw):
 
 
 # Transform state shared with pass-2 workers. Populated in the parent before
-# the pool forks; workers read it as inherited memory, so nothing is pickled.
+# the pool forks. Workers read it as inherited memory, so nothing is pickled.
 _worker = {}
 
 
@@ -194,7 +197,7 @@ def run_full(config, sources, source_files, release_date):
     holding resources in memory: pass 1 collects surviving refs (a set of
     strings), pass 2 transforms each survivor and appends it to its per-type
     NDJSON file. Pass 2 fans the CPU-heavy per-record work out to worker
-    processes; the parent only reads lines and writes results, in order.
+    processes. The parent only reads lines and writes results, in order.
     """
     display_map = {}
     if not config.raw:
@@ -204,7 +207,7 @@ def run_full(config, sources, source_files, release_date):
     kept_refs = set()
     dropped_refs = set()
     drop_counts = {}
-    # Telecom-less roles satisfy pd-1 only through their endpoints; whether
+    # Telecom-less roles satisfy pd-1 only through their endpoints, and whether
     # those endpoints survive is not known until pass 1 has seen every type.
     contactless_roles = {}
     for resource_type in sorted(sources):
@@ -335,8 +338,8 @@ def run_full(config, sources, source_files, release_date):
 
 
 def run_pipeline(config):
-    # The package serves the transform (display corrections) and validation;
-    # only a raw, unvalidated run gets by without it. Both tools are resolved
+    # The package serves the transform (display corrections) and validation.
+    # Only a raw, unvalidated run gets by without it. Both tools are resolved
     # before the multi-gigabyte source download so a bad spec fails fast.
     if not config.raw or not config.skip_validate:
         config.ndh_package = download.fetch_ndh_package(
@@ -364,7 +367,7 @@ def run_pipeline(config):
     )
 
     log.info("cleaning up %d resources", len(subset.kept))
-    # Raw mode ports CMS resources unchanged; cleanup converts them to NDH 2.0.
+    # Raw mode ports CMS resources unchanged, cleanup converts them to NDH 2.0.
     # Either way, references outside the subset are still stripped for integrity.
     if config.raw:
         kept = dict(subset.kept)
@@ -374,8 +377,7 @@ def run_pipeline(config):
         display_map = {}
         if config.ndh_package and Path(config.ndh_package).exists():
             display_map = load_display_map(config.ndh_package)
-        if collect_codes(subset.kept.values(), NUCC_SYSTEM):
-            display_map.update(fetch_nucc_displays(_cache_root(config) / "nucc-displays.json"))
+        display_map.update(fetch_nucc_displays(_cache_root(config) / "nucc-displays.json"))
         kept = {
             ref: transform_resource(resource, display_map)
             for ref, resource in subset.kept.items()
@@ -433,7 +435,7 @@ def run_pipeline(config):
     validation_errors = None
     error_categories = []
     if not config.skip_validate:
-        # NDJSON output needs a per-resource staging tree; JSON output already has one.
+        # NDJSON output needs a per-resource staging tree. JSON output has one.
         staging = (
             Path(tempfile.mkdtemp(prefix="npd-validate-"))
             if config.ndjson else Path(config.output_dir)

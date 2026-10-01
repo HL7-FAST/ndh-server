@@ -43,7 +43,7 @@ def _available_memory():
     """Memory available without swapping, including reclaimable caches.
 
     Free-page counts (sysconf) understate badly right after streaming the
-    multi-gigabyte source files, since the page cache is reclaimable; psutil
+    multi-gigabyte source files, since the page cache is reclaimable. psutil
     reports the platform's real availability metric on Linux/macOS/Windows.
     """
     try:
@@ -60,7 +60,7 @@ def shard_count(cap=4, reserve=1, xmx=None):
     """Conservative parallel validator count from usable cores and, when xmx
     is given, available memory. Cross-platform.
 
-    Capped low because each shard is a heavy validator JVM; over-sharding
+    Capped low because each shard is a heavy validator JVM. Over-sharding
     starves the CPU and trips the validator's 500ms regex timeout (spurious
     errors). Shards that do not fit in memory are worse still: a swapping
     JVM runs several times slower than the sharding gains.
@@ -114,7 +114,7 @@ def _categorize(message):
 def _link(src, dst):
     dst.parent.mkdir(parents=True, exist_ok=True)
     try:
-        os.link(src, dst)          # cheap; falls back to copy across filesystems
+        os.link(src, dst)          # cheap, falls back to copy across filesystems
     except OSError:
         shutil.copy2(src, dst)
 
@@ -228,7 +228,7 @@ def run_validator_sharded(
 
     merged = []
     for k, returncode, console, text in results:
-        # 0 = no issues, 1 = validation issues found; anything else is a failure.
+        # 0 = no issues, 1 = validation issues found, anything else is a failure.
         if returncode not in (0, 1) or (returncode == 1 and not _ERROR_LINE.search(text)):
             raise RuntimeError(f"validator shard {k} failed (exit {returncode}):\n{console[-4000:]}")
         prefix = str(shard_root / f"shard-{k}")

@@ -1,6 +1,10 @@
-"""Sample resources for the NDH profile types absent from the CMS data:
-Network, HealthcareService, InsurancePlan, VerificationResult, and Group,
-wired to the kept resources.
+"""Sample resources for the NDH profile types the CMS files do not cover
+with conformant records: Network, HealthcareService, InsurancePlan,
+VerificationResult, and Group, wired to the kept resources.
+
+The CMS HealthcareService and InsurancePlan files lack the category and
+type elements NDH requires and carry no address, so the pipeline does not
+read them.
 
 Output is deterministic: ids derive from the geography slug, members and
 targets are picked in sorted order, and dates are fixed constants.
@@ -32,7 +36,7 @@ class SamplesConfig:
     state: str
 
 
-# Fixed counts and timestamps; constant so regenerated output is byte-identical.
+# Fixed counts and timestamps keep regenerated output byte-identical.
 NETWORKS = 2
 SERVICES = 5
 PLANS = 2

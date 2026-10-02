@@ -72,3 +72,19 @@ def test_fix_coding_systems():
     fix_coding_systems(resource)
     assert resource["identifier"][0]["system"] == "http://hl7.org/fhir/sid/us-npi"
     assert resource["qualification"][0]["code"]["coding"][0]["system"] == "http://nucc.org/provider-taxonomy"
+
+
+def test_fix_credential_codes():
+    from npd_data.cleanup import fix_credential_codes
+
+    system = "http://hl7.org/fhir/us/ndh/CodeSystem/FaCeT-credentialCS"
+    codings = [
+        {"system": system, "code": "CRN", "display": "Certified Registered Nurse"},
+        {"system": system, "code": "MT", "display": "Medical Technician"},
+        {"system": system, "code": "BT", "display": "Bachelor of Theology"},
+        {"system": system, "code": "CRN", "display": "Certified Radiologic Nurse"},
+        {"system": "http://nucc.org/provider-taxonomy", "code": "CRN", "display": "Certified Registered Nurse"},
+    ]
+    resource = {"resourceType": "Practitioner", "qualification": [{"code": {"coding": codings}}]}
+    fix_credential_codes(resource)
+    assert [c["code"] for c in codings] == ["CRN_2", "MT_2", "BT_2", "CRN", "CRN"]

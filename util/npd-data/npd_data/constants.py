@@ -36,6 +36,16 @@ CODING_SYSTEM_REMAPS = {
     NDH_SD.replace("StructureDefinition", "ValueSet") + "HealthcareIndividualTaxonomyVS": "http://nucc.org/provider-taxonomy",
 }
 
+FACET_CREDENTIAL_SYSTEM = "http://hl7.org/fhir/us/ndh/CodeSystem/FaCeT-credentialCS"
+
+# CMS credential codes absent from FaCeT-credentialCS, keyed by (code, display).
+# The display selects between the suffixed concepts that share an abbreviation.
+CREDENTIAL_CODE_REMAPS = {
+    ("CRN", "Certified Registered Nurse"): "CRN_2",
+    ("MT", "Medical Technician"): "MT_2",
+    ("BT", "Bachelor of Theology"): "BT_2",
+}
+
 ACCEPTING_PATIENTS_SYSTEM = "http://terminology.hl7.org/CodeSystem/accepting-patients"
 VERIFICATION_STATUS_SYSTEM = "http://hl7.org/fhir/us/ndh/CodeSystem/NdhVerificationStatusCS"
 

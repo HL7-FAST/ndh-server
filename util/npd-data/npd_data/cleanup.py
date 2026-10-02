@@ -14,6 +14,8 @@ from .constants import (
     EXTENSION_URL_DROPS,
     EXTENSION_URL_REMAPS,
     CODING_SYSTEM_REMAPS,
+    CREDENTIAL_CODE_REMAPS,
+    FACET_CREDENTIAL_SYSTEM,
     ndh_profile,
 )
 
@@ -59,6 +61,20 @@ def _fix_system(node):
     system = node.get("system")
     if system in CODING_SYSTEM_REMAPS:
         node["system"] = CODING_SYSTEM_REMAPS[system]
+
+
+def fix_credential_codes(resource):
+    """Rewrite CMS credential codes that FaCeT-credentialCS does not define."""
+    _walk_dicts(resource, _fix_credential_code)
+    return resource
+
+
+def _fix_credential_code(node):
+    if node.get("system") != FACET_CREDENTIAL_SYSTEM:
+        return
+    target = CREDENTIAL_CODE_REMAPS.get((node.get("code"), node.get("display")))
+    if target is not None:
+        node["code"] = target
 
 
 def remap_extensions(resource):
@@ -188,6 +204,7 @@ _RULES = [
     strip_empty_arrays,
     fix_telecom_use,
     fix_coding_systems,
+    fix_credential_codes,
     remap_extensions,
     flatten_endpoint_reference,
     expand_newpatients,

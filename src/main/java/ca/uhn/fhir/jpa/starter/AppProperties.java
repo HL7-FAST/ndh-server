@@ -5,7 +5,7 @@ import ca.uhn.fhir.jpa.api.config.JpaStorageSettings;
 import ca.uhn.fhir.jpa.api.config.JpaStorageSettings.ClientIdStrategyEnum;
 import ca.uhn.fhir.jpa.api.config.JpaStorageSettings.IdStrategyEnum;
 import ca.uhn.fhir.jpa.model.entity.NormalizedQuantitySearchLevel;
-import ca.uhn.fhir.jpa.starter.ig.ExtendedPackageInstallationSpec;
+import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -69,7 +69,7 @@ public class AppProperties {
 
 	private BinaryStorageMode binary_storage_mode = BinaryStorageMode.DATABASE;
 	private String binary_storage_filesystem_base_directory;
-	private Integer inline_resource_storage_below_size;
+	private Integer binary_storage_minimum_binary_size;
 	private Boolean bulk_export_enabled = false;
 	private Boolean bulk_import_enabled = false;
 	private Boolean default_pretty_print = true;
@@ -98,7 +98,7 @@ public class AppProperties {
 	private Boolean install_transitive_ig_dependencies = true;
 
 	private List<String> install_additional_resources_from_ig_folders = new ArrayList<>();
-	private Map<String, ExtendedPackageInstallationSpec> implementationGuides = null;
+	private Map<String, PackageInstallationSpec> implementationGuides = null;
 	private String custom_content_path = null;
 	private String app_content_path = null;
 	private Boolean lastn_enabled = false;
@@ -129,6 +129,35 @@ public class AppProperties {
 	private Boolean mark_resources_for_reindexing_upon_search_parameter_change = true;
 	private Integer reindex_thread_count = null;
 	private Integer expunge_thread_count = null;
+	private Elasticsearch elasticsearch = null;
+
+	private Integer bulk_export_file_retention_period_hours = 2;
+
+	private boolean allow_database_validation_override = false;
+
+	/**
+	 * Outbound HTTP client settings applied to the HAPI {@code FhirContext} RestfulClientFactory.
+	 * These govern every outbound FHIR call the server makes on its own behalf: remote terminology
+	 * validation, IG fetches, subscription delivery checks, and the web tester UI.
+	 * All timeout values are in milliseconds; pool values are connection counts.
+	 */
+	private Client client = new Client();
+
+	public boolean getAllow_database_validation_override() {
+		return allow_database_validation_override;
+	}
+
+	public void setAllow_database_validation_override(boolean allow_database_validation_override) {
+		this.allow_database_validation_override = allow_database_validation_override;
+	}
+
+	public Client getClient() {
+		return client;
+	}
+
+	public void setClient(Client client) {
+		this.client = client;
+	}
 
 	public List<String> getCustomInterceptorClasses() {
 		return custom_interceptor_classes;
@@ -170,11 +199,11 @@ public class AppProperties {
 		this.defer_indexing_for_codesystems_of_size = defer_indexing_for_codesystems_of_size;
 	}
 
-	public Map<String, ExtendedPackageInstallationSpec> getImplementationGuides() {
+	public Map<String, PackageInstallationSpec> getImplementationGuides() {
 		return implementationGuides;
 	}
 
-	public void setImplementationGuides(Map<String, ExtendedPackageInstallationSpec> implementationGuides) {
+	public void setImplementationGuides(Map<String, PackageInstallationSpec> implementationGuides) {
 		this.implementationGuides = implementationGuides;
 	}
 
@@ -510,12 +539,12 @@ public class AppProperties {
 		this.binary_storage_filesystem_base_directory = binary_storage_filesystem_base_directory;
 	}
 
-	public Integer getInline_resource_storage_below_size() {
-		return inline_resource_storage_below_size;
+	public Integer getBinary_storage_minimum_binary_size() {
+		return binary_storage_minimum_binary_size;
 	}
 
-	public void setInline_resource_storage_below_size(Integer inline_resource_storage_below_size) {
-		this.inline_resource_storage_below_size = inline_resource_storage_below_size;
+	public void setBinary_storage_minimum_binary_size(Integer binary_storage_minimum_binary_size) {
+		this.binary_storage_minimum_binary_size = binary_storage_minimum_binary_size;
 	}
 
 	public Boolean getBulk_export_enabled() {
@@ -847,12 +876,54 @@ public class AppProperties {
 		this.store_meta_source_information = store_meta_source_information;
 	}
 
+	public Elasticsearch getElasticsearch() {
+		return elasticsearch;
+	}
+
+	public void setElasticsearch(Elasticsearch elasticsearch) {
+		this.elasticsearch = elasticsearch;
+	}
+
+	public Integer getBulk_export_file_retention_period_hours() {
+		return bulk_export_file_retention_period_hours;
+	}
+
+	public void setBulk_export_file_retention_period_hours(Integer bulk_export_file_retention_period_hours) {
+		this.bulk_export_file_retention_period_hours = bulk_export_file_retention_period_hours;
+	}
+
 	public static class Cors {
-		private Boolean allow_Credentials = true;
+		private static final List<String> DEFAULT_ALLOWED_HEADERS = List.of(
+				"Origin",
+				"Accept",
+				"Content-Type",
+				"Authorization",
+				"Cache-Control",
+				"If-Match",
+				"If-None-Match",
+				"x-fhir-starter",
+				"X-Requested-With",
+				"Prefer");
+		private static final List<String> DEFAULT_EXPOSED_HEADERS = List.of(
+				"Location",
+				"Content-Location",
+				"ETag",
+				"Date",
+				"Retry-After",
+				"X-Correlation-Id",
+				"X-Progress",
+				"X-Request-Id");
+		private static final List<String> DEFAULT_ALLOWED_METHODS =
+				List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD");
+
+		private Boolean allow_Credentials = false;
 		private List<String> allowed_origin = List.of("*");
+		private List<String> allowed_headers = DEFAULT_ALLOWED_HEADERS;
+		private List<String> exposed_headers = DEFAULT_EXPOSED_HEADERS;
+		private List<String> allowed_methods = DEFAULT_ALLOWED_METHODS;
 
 		public List<String> getAllowed_origin() {
-			return allowed_origin;
+			return defaultIfNull(allowed_origin, List.of("*"));
 		}
 
 		public void setAllowed_origin(List<String> allowed_origin) {
@@ -865,6 +936,30 @@ public class AppProperties {
 
 		public void setAllow_Credentials(Boolean allow_Credentials) {
 			this.allow_Credentials = allow_Credentials;
+		}
+
+		public List<String> getAllowed_headers() {
+			return defaultIfNull(allowed_headers, DEFAULT_ALLOWED_HEADERS);
+		}
+
+		public void setAllowed_headers(List<String> allowed_headers) {
+			this.allowed_headers = allowed_headers;
+		}
+
+		public List<String> getExposed_headers() {
+			return defaultIfNull(exposed_headers, DEFAULT_EXPOSED_HEADERS);
+		}
+
+		public void setExposed_headers(List<String> exposed_headers) {
+			this.exposed_headers = exposed_headers;
+		}
+
+		public List<String> getAllowed_methods() {
+			return defaultIfNull(allowed_methods, DEFAULT_ALLOWED_METHODS);
+		}
+
+		public void setAllowed_methods(List<String> allowed_methods) {
+			this.allowed_methods = allowed_methods;
 		}
 	}
 
@@ -1071,6 +1166,7 @@ public class AppProperties {
 		private Email email = null;
 		private Integer polling_interval_ms = null;
 		private Boolean immediately_queued = false;
+		private Boolean cross_partition_enabled = false;
 
 		public Boolean getResthook_enabled() {
 			return resthook_enabled;
@@ -1110,6 +1206,14 @@ public class AppProperties {
 
 		public void setImmediately_queued(Boolean immediately_queued) {
 			this.immediately_queued = immediately_queued;
+		}
+
+		public Boolean getCross_partition_enabled() {
+			return cross_partition_enabled;
+		}
+
+		public void setCross_partition_enabled(Boolean cross_partition_enabled) {
+			this.cross_partition_enabled = Boolean.TRUE.equals(cross_partition_enabled);
 		}
 
 		public static class Email {
@@ -1194,6 +1298,116 @@ public class AppProperties {
 			public void setQuitWait(Boolean quitWait) {
 				this.quitWait = quitWait;
 			}
+		}
+	}
+
+	public static class Elasticsearch {
+
+		private String index_prefix = "";
+
+		public String getIndex_prefix() {
+			return index_prefix;
+		}
+
+		public void setIndex_prefix(String index_prefix) {
+			this.index_prefix = index_prefix;
+		}
+	}
+
+	/**
+	 * Outbound HTTP client settings applied to {@code FhirContext.getRestfulClientFactory()}.
+	 *
+	 * <p>Default values mirror the upstream HAPI constants in
+	 * {@code IRestfulClientFactory}: 10 000 ms for all timeouts, 20 for pool sizes.
+	 * Override these via {@code hapi.fhir.client.*} in {@code application.yaml} (or
+	 * the equivalent environment-variable form) whenever the server makes outbound
+	 * FHIR calls to slow or remote services — e.g. remote terminology servers,
+	 * IG package registries, or CDS Hooks upstream providers.</p>
+	 */
+	public static class Client {
+
+		/**
+		 * Maximum time (ms) to wait for data on an established socket before
+		 * giving up. Corresponds to {@code IRestfulClientFactory.setSocketTimeout}.
+		 */
+		private Integer socket_timeout = 10000;
+
+		/**
+		 * Maximum time (ms) to wait while establishing a TCP connection.
+		 * Corresponds to {@code IRestfulClientFactory.setConnectTimeout}.
+		 */
+		private Integer connect_timeout = 10000;
+
+		/**
+		 * Maximum time (ms) to wait for a connection to be leased from the pool.
+		 * Corresponds to {@code IRestfulClientFactory.setConnectionRequestTimeout}.
+		 */
+		private Integer connection_request_timeout = 10000;
+
+		/**
+		 * Time-to-live (ms) for persistent connections in the pool.
+		 * Corresponds to {@code IRestfulClientFactory.setConnectionTimeToLive}.
+		 */
+		private Integer connection_ttl = 5000;
+
+		/**
+		 * Maximum total number of connections in the HTTP connection pool.
+		 * Corresponds to {@code IRestfulClientFactory.setPoolMaxTotal}.
+		 */
+		private Integer pool_max_total = 20;
+
+		/**
+		 * Maximum connections per route (target host) in the HTTP connection pool.
+		 * Corresponds to {@code IRestfulClientFactory.setPoolMaxPerRoute}.
+		 */
+		private Integer pool_max_per_route = 20;
+
+		public Integer getSocket_timeout() {
+			return socket_timeout;
+		}
+
+		public void setSocket_timeout(Integer socket_timeout) {
+			this.socket_timeout = socket_timeout;
+		}
+
+		public Integer getConnect_timeout() {
+			return connect_timeout;
+		}
+
+		public void setConnect_timeout(Integer connect_timeout) {
+			this.connect_timeout = connect_timeout;
+		}
+
+		public Integer getConnection_request_timeout() {
+			return connection_request_timeout;
+		}
+
+		public void setConnection_request_timeout(Integer connection_request_timeout) {
+			this.connection_request_timeout = connection_request_timeout;
+		}
+
+		public Integer getConnection_ttl() {
+			return connection_ttl;
+		}
+
+		public void setConnection_ttl(Integer connection_ttl) {
+			this.connection_ttl = connection_ttl;
+		}
+
+		public Integer getPool_max_total() {
+			return pool_max_total;
+		}
+
+		public void setPool_max_total(Integer pool_max_total) {
+			this.pool_max_total = pool_max_total;
+		}
+
+		public Integer getPool_max_per_route() {
+			return pool_max_per_route;
+		}
+
+		public void setPool_max_per_route(Integer pool_max_per_route) {
+			this.pool_max_per_route = pool_max_per_route;
 		}
 	}
 }

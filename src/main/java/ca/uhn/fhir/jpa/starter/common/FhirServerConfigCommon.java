@@ -150,6 +150,12 @@ public class FhirServerConfigCommon {
 				subscriptionSettings.setSubscriptionChangeQueuedImmediately(
 						appProperties.getSubscription().getImmediately_queued());
 			}
+			boolean crossPartitionEnabled =
+					Boolean.TRUE.equals(appProperties.getSubscription().getCross_partition_enabled());
+			if (crossPartitionEnabled) {
+				ourLog.info("Enabling cross-partition subscriptions");
+			}
+			subscriptionSettings.setCrossPartitionSubscriptionEnabled(crossPartitionEnabled);
 		}
 		if (appProperties.getMdm_enabled()) {
 			// MDM requires the subscription of type message
@@ -166,6 +172,7 @@ public class FhirServerConfigCommon {
 	public JpaStorageSettings jpaStorageSettings(AppProperties appProperties) {
 		JpaStorageSettings jpaStorageSettings = new JpaStorageSettings();
 
+		jpaStorageSettings.setAllowDatabaseValidationOverride(appProperties.getAllow_database_validation_override());
 		jpaStorageSettings.setPreExpandValueSets(appProperties.getPre_expand_value_sets());
 		jpaStorageSettings.setEnableTaskPreExpandValueSets(appProperties.getEnable_task_pre_expand_value_sets());
 		jpaStorageSettings.setPreExpandValueSetsMaxCount(appProperties.getPre_expand_value_sets_max_count());
@@ -227,11 +234,6 @@ public class FhirServerConfigCommon {
 			jpaStorageSettings.setLastNEnabled(true);
 		}
 
-		Integer inlineResourceThreshold = resolveInlineResourceThreshold(appProperties);
-		if (inlineResourceThreshold != null && inlineResourceThreshold != 0) {
-			jpaStorageSettings.setInlineResourceTextBelowSize(inlineResourceThreshold);
-		}
-
 		jpaStorageSettings.setStoreResourceInHSearchIndex(appProperties.getStore_resource_in_lucene_index_enabled());
 		jpaStorageSettings.setNormalizedQuantitySearchLevel(appProperties.getNormalized_quantity_search_level());
 		jpaStorageSettings.setIndexOnContainedResources(appProperties.getEnable_index_contained_resource());
@@ -278,15 +280,8 @@ public class FhirServerConfigCommon {
 		// Set store meta source information
 		ourLog.debug("Server configured to Store Meta Source: {}", appProperties.getStore_meta_source_information());
 		jpaStorageSettings.setStoreMetaSourceInformation(appProperties.getStore_meta_source_information());
-
-		jpaStorageSettings.setAllowContainsSearches(appProperties.getAllow_contains_searches());
-		jpaStorageSettings.setAllowExternalReferences(appProperties.getAllow_external_references());
 		jpaStorageSettings.setDefaultSearchParamsCanBeOverridden(
 				appProperties.getAllow_override_default_search_params());
-
-		jpaStorageSettings.setNormalizedQuantitySearchLevel(appProperties.getNormalized_quantity_search_level());
-
-		jpaStorageSettings.setIndexOnContainedResources(appProperties.getEnable_index_contained_resource());
 		jpaStorageSettings.setIndexIdentifierOfType(appProperties.getEnable_index_of_type());
 
 		// Configure thread counts for reindex and expunge operations
@@ -301,6 +296,18 @@ public class FhirServerConfigCommon {
 			ourLog.info(
 					"Server configured to use {} threads for expunge operations",
 					appProperties.getExpunge_thread_count());
+		}
+
+		// Determine index prefix from configuration
+		if (appProperties.getElasticsearch() != null) {
+			String indexPrefix = appProperties.getElasticsearch().getIndex_prefix();
+			jpaStorageSettings.setHSearchIndexPrefix(indexPrefix != null ? indexPrefix : "");
+		}
+
+		// Configure the bulk export file retention period
+		if (appProperties.getBulk_export_file_retention_period_hours() != null) {
+			jpaStorageSettings.setBulkExportFileRetentionPeriodHours(
+					appProperties.getBulk_export_file_retention_period_hours());
 		}
 
 		return jpaStorageSettings;
@@ -398,7 +405,7 @@ public class FhirServerConfigCommon {
 	}
 
 	private Integer resolveInlineResourceThreshold(AppProperties appProperties) {
-		Integer inlineResourceThreshold = appProperties.getInline_resource_storage_below_size();
+		Integer inlineResourceThreshold = appProperties.getBinary_storage_minimum_binary_size();
 		if (inlineResourceThreshold == null
 				&& appProperties.getBinary_storage_mode() == AppProperties.BinaryStorageMode.FILESYSTEM) {
 			return DEFAULT_FILESYSTEM_INLINE_THRESHOLD;

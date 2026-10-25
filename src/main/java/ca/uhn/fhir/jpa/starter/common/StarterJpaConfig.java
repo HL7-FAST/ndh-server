@@ -1,9 +1,9 @@
 package ca.uhn.fhir.jpa.starter.common;
 
 import ca.uhn.fhir.batch2.config.Batch2JobRegisterer;
+import ca.uhn.fhir.batch2.jobs.bulkmodify.reindex.ReindexProvider;
 import ca.uhn.fhir.batch2.jobs.export.BulkDataExportProvider;
 import ca.uhn.fhir.batch2.jobs.imprt.BulkDataImportProvider;
-import ca.uhn.fhir.batch2.jobs.reindex.ReindexProvider;
 import ca.uhn.fhir.context.ConfigurationException;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.FhirVersionEnum;
@@ -13,10 +13,11 @@ import ca.uhn.fhir.interceptor.model.RequestPartitionId;
 import ca.uhn.fhir.jpa.api.IDaoRegistry;
 import ca.uhn.fhir.jpa.api.config.JpaStorageSettings;
 import ca.uhn.fhir.jpa.api.config.ThreadPoolFactoryConfig;
+import ca.uhn.fhir.jpa.api.dao.DaoRegistrationService;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirSystemDao;
-import ca.uhn.fhir.jpa.binary.interceptor.BinaryStorageInterceptor;
 import ca.uhn.fhir.jpa.binary.provider.BinaryAccessProvider;
+import ca.uhn.fhir.jpa.config.SearchConfig;
 import ca.uhn.fhir.jpa.config.util.HapiEntityManagerFactoryUtil;
 import ca.uhn.fhir.jpa.config.util.ResourceCountCacheUtil;
 import ca.uhn.fhir.jpa.dao.FulltextSearchSvcImpl;
@@ -34,6 +35,7 @@ import ca.uhn.fhir.jpa.model.config.SubscriptionSettings;
 import ca.uhn.fhir.jpa.packages.AdditionalResourcesParser;
 import ca.uhn.fhir.jpa.packages.IHapiPackageCacheManager;
 import ca.uhn.fhir.jpa.packages.IPackageInstallerSvc;
+import ca.uhn.fhir.jpa.packages.PackageInstallationSpec;
 import ca.uhn.fhir.jpa.provider.DaoRegistryResourceSupportedSvc;
 import ca.uhn.fhir.jpa.provider.DiffProvider;
 import ca.uhn.fhir.jpa.provider.IJpaSystemProvider;
@@ -50,7 +52,7 @@ import ca.uhn.fhir.jpa.starter.AppProperties;
 import ca.uhn.fhir.jpa.starter.annotations.OnCorsPresent;
 import ca.uhn.fhir.jpa.starter.annotations.OnImplementationGuidesPresent;
 import ca.uhn.fhir.jpa.starter.common.validation.IRepositoryValidationInterceptorFactory;
-import ca.uhn.fhir.jpa.starter.ig.ExtendedPackageInstallationSpec;
+import ca.uhn.fhir.jpa.starter.elastic.ElasticsearchBootSvcImpl;
 import ca.uhn.fhir.jpa.starter.ig.IImplementationGuideOperationProvider;
 import ca.uhn.fhir.jpa.subscription.util.SubscriptionDebugLogInterceptor;
 import ca.uhn.fhir.jpa.util.ResourceCountCache;
@@ -59,13 +61,8 @@ import ca.uhn.fhir.narrative.DefaultThymeleafNarrativeGenerator;
 import ca.uhn.fhir.narrative2.NullNarrativeGenerator;
 import ca.uhn.fhir.rest.api.IResourceSupportedSvc;
 import ca.uhn.fhir.rest.api.server.SystemRequestDetails;
+import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.openapi.OpenApiInterceptor;
-import ca.uhn.fhir.rest.server.ApacheProxyAddressStrategy;
-import ca.uhn.fhir.rest.server.ETagSupportEnum;
-import ca.uhn.fhir.rest.server.HardcodedServerAddressStrategy;
-import ca.uhn.fhir.rest.server.IServerConformanceProvider;
-import ca.uhn.fhir.rest.server.IncomingRequestAddressStrategy;
-import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.CorsInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.FhirPathFilterInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
@@ -74,6 +71,7 @@ import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
 import ca.uhn.fhir.rest.server.provider.ResourceProviderFactory;
 import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
+import ca.uhn.fhir.rest.server.*;
 import ca.uhn.fhir.validation.IValidatorModule;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
 import com.google.common.base.Strings;
@@ -86,6 +84,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
@@ -96,7 +95,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpHeaders;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.web.cors.CorsConfiguration;
@@ -109,7 +107,7 @@ import static ca.uhn.fhir.jpa.starter.common.validation.IRepositoryValidationInt
 @Configuration
 // allow users to configure custom packages to scan for additional beans
 @ComponentScan(basePackages = {"${hapi.fhir.custom-bean-packages:}"})
-@Import(ThreadPoolFactoryConfig.class)
+@Import({ThreadPoolFactoryConfig.class, SearchConfig.class})
 public class StarterJpaConfig {
 
 	private static final Logger ourLog = LoggerFactory.getLogger(StarterJpaConfig.class);
@@ -136,19 +134,60 @@ public class StarterJpaConfig {
 		return pagingProvider;
 	}
 
+	/**
+	 * Applies outbound HTTP client settings from {@code hapi.fhir.client.*} to the shared
+	 * {@link FhirContext} RestfulClientFactory.
+	 *
+	 * <p>The factory is used for every FHIR call the server makes on its own behalf:
+	 * remote terminology validation, IG package fetches, the web tester UI (HomeRequest),
+	 * and any custom interceptor or provider that calls
+	 * {@code fhirContext.newRestfulGenericClient(...)}. Configuring these values globally
+	 * here avoids scattering {@code getRestfulClientFactory().setSocketTimeout(...)} calls
+	 * across individual components.
+	 *
+	 * <p>All settings default to the upstream HAPI constants defined in
+	 * {@link IRestfulClientFactory} (10 000 ms for timeouts, 20 for pool sizes) so
+	 * existing deployments are unaffected unless they explicitly override via YAML or
+	 * environment variables.
+	 */
+	@Bean
+	public ApplicationRunner restfulClientFactoryConfigurer(FhirContext fhirContext, AppProperties appProperties) {
+		return args -> {
+			AppProperties.Client cfg = appProperties.getClient();
+			IRestfulClientFactory factory = fhirContext.getRestfulClientFactory();
+			factory.setSocketTimeout(cfg.getSocket_timeout());
+			factory.setConnectTimeout(cfg.getConnect_timeout());
+			factory.setConnectionRequestTimeout(cfg.getConnection_request_timeout());
+			factory.setConnectionTimeToLive(cfg.getConnection_ttl());
+			factory.setPoolMaxTotal(cfg.getPool_max_total());
+			factory.setPoolMaxPerRoute(cfg.getPool_max_per_route());
+		};
+	}
+
+	@Bean
+	public DaoRegistry daoRegistry(FhirContext theFhirContext, ApplicationContext theApplicationContext) {
+		return new JpaStarterDaoRegistry(theFhirContext, theApplicationContext);
+	}
+
+	@Bean
+	public DaoRegistrationService daoRegistrationService(DaoRegistry theDaoRegistry) {
+		return new DaoRegistrationService(theDaoRegistry);
+	}
+
 	@Bean
 	public IResourceSupportedSvc resourceSupportedSvc(IDaoRegistry theDaoRegistry) {
 		return new DaoRegistryResourceSupportedSvc(theDaoRegistry);
 	}
 
 	@Bean(name = "myResourceCountsCache")
-	public ResourceCountCache resourceCountsCache(IFhirSystemDao<?, ?> theSystemDao) {
-		return ResourceCountCacheUtil.newResourceCountCache(theSystemDao);
+	public ResourceCountCache resourceCountsCache(DaoRegistry theDaoRegistry) {
+		return ResourceCountCacheUtil.newResourceCountCache(theDaoRegistry);
 	}
 
 	@Primary
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(
+			Optional<ElasticsearchBootSvcImpl> elasticsearchSvc,
 			JpaProperties theJpaProperties,
 			DataSource myDataSource,
 			ConfigurableListableBeanFactory myConfigurableListableBeanFactory,
@@ -240,9 +279,9 @@ public class StarterJpaConfig {
 		batch2JobRegisterer.start();
 
 		if (appProperties.getImplementationGuides() != null) {
-			Map<String, ExtendedPackageInstallationSpec> guides = appProperties.getImplementationGuides();
-			for (Map.Entry<String, ExtendedPackageInstallationSpec> guidesEntry : guides.entrySet()) {
-				ExtendedPackageInstallationSpec packageInstallationSpec = guidesEntry.getValue();
+			Map<String, PackageInstallationSpec> guides = appProperties.getImplementationGuides();
+			for (Map.Entry<String, PackageInstallationSpec> guidesEntry : guides.entrySet()) {
+				PackageInstallationSpec packageInstallationSpec = guidesEntry.getValue();
 				if (appProperties.getInstall_transitive_ig_dependencies()) {
 
 					packageInstallationSpec
@@ -263,7 +302,9 @@ public class StarterJpaConfig {
 					IBaseBundle transaction = AdditionalResourcesParser.bundleAdditionalResources(
 							extraResources, packageInstallationSpec, fhirContext);
 					transactionProcessor.transaction(
-							new SystemRequestDetails().setRequestPartitionId(RequestPartitionId.defaultPartition()),
+							new SystemRequestDetails()
+									.setRequestPartitionId(
+											RequestPartitionId.fromPartitionIds(Collections.singletonList(null))),
 							transaction,
 							false);
 				}
@@ -279,24 +320,17 @@ public class StarterJpaConfig {
 		// showing a typical setup. You should customize this
 		// to your specific needs
 		ourLog.info("CORS is enabled on this server");
+		AppProperties.Cors corsProperties = appProperties.getCors();
 		CorsConfiguration config = new CorsConfiguration();
-		config.addAllowedHeader(HttpHeaders.ORIGIN);
-		config.addAllowedHeader(HttpHeaders.ACCEPT);
-		config.addAllowedHeader(HttpHeaders.CONTENT_TYPE);
-		config.addAllowedHeader(HttpHeaders.AUTHORIZATION);
-		config.addAllowedHeader(HttpHeaders.CACHE_CONTROL);
-		config.addAllowedHeader("x-fhir-starter");
-		config.addAllowedHeader("X-Requested-With");
-		config.addAllowedHeader("Prefer");
+		corsProperties.getAllowed_headers().forEach(config::addAllowedHeader);
 
-		List<String> allAllowedCORSOrigins = appProperties.getCors().getAllowed_origin();
+		List<String> allAllowedCORSOrigins = corsProperties.getAllowed_origin();
 		allAllowedCORSOrigins.forEach(config::addAllowedOriginPattern);
 		ourLog.info("CORS allows the following origins: {}", String.join(", ", allAllowedCORSOrigins));
 
-		config.addExposedHeader("Location");
-		config.addExposedHeader("Content-Location");
-		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
-		config.setAllowCredentials(appProperties.getCors().getAllow_Credentials());
+		corsProperties.getExposed_headers().forEach(config::addExposedHeader);
+		config.setAllowedMethods(corsProperties.getAllowed_methods());
+		config.setAllowCredentials(corsProperties.getAllow_Credentials());
 
 		// Create the interceptor and register it
 		return new CorsInterceptor(config);
@@ -304,6 +338,7 @@ public class StarterJpaConfig {
 
 	@Bean
 	public RestfulServer restfulServer(
+			FhirContext theFhirContext,
 			IFhirSystemDao<?, ?> fhirSystemDao,
 			AppProperties appProperties,
 			DaoRegistry daoRegistry,
@@ -321,7 +356,6 @@ public class StarterJpaConfig {
 			Optional<CorsInterceptor> corsInterceptor,
 			IInterceptorBroadcaster interceptorBroadcaster,
 			Optional<BinaryAccessProvider> binaryAccessProvider,
-			BinaryStorageInterceptor binaryStorageInterceptor,
 			IValidatorModule validatorModule,
 			Optional<GraphQLProvider> graphQLProvider,
 			BulkDataExportProvider bulkDataExportProvider,
@@ -334,7 +368,8 @@ public class StarterJpaConfig {
 			ApplicationContext appContext,
 			Optional<IpsOperationProvider> theIpsOperationProvider,
 			Optional<IImplementationGuideOperationProvider> implementationGuideOperationProvider,
-			DiffProvider diffProvider) {
+			DiffProvider diffProvider,
+			FhirContext fhirContext) {
 		RestfulServer fhirServer = new RestfulServer(fhirSystemDao.getContext());
 
 		List<String> supportedResourceTypes = appProperties.getSupported_resource_types();
@@ -344,6 +379,8 @@ public class StarterJpaConfig {
 				supportedResourceTypes.add("SearchParameter");
 			}
 			daoRegistry.setSupportedResourceTypes(supportedResourceTypes);
+		} else {
+			daoRegistry.setSupportedResourceTypes(theFhirContext.getResourceTypes());
 		}
 
 		if (appProperties.getNarrative_enabled()) {
@@ -453,7 +490,6 @@ public class StarterJpaConfig {
 		// Binary Storage
 		if (appProperties.getBinary_storage_enabled() && binaryAccessProvider.isPresent()) {
 			fhirServer.registerProvider(binaryAccessProvider.get());
-			fhirServer.registerInterceptor(binaryStorageInterceptor);
 		}
 
 		// Validation
